@@ -1,0 +1,777 @@
+---
+title: 'Lab 1: Introduction to R'
+author: "brouwern@gmail.com"
+date: "September 3, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+```
+
+# ENS 495 Design & Analysis Lab 1: Intro to R
+Originally delivered:
+Thurs. Sep 01, 2016
+California University of Pennsylvania
+Department of Biological & Environmental Sciences
+
+Lab written by:
+Nathan Brouwer, Phd
+brouwern@gmail.com
+https://github.com/brouwern
+
+# Preface 
+This document is a walk through of a basic R session.  It assumes that a file called "Lab1_data_PA_eagles.xlsx" is saved to your desktop.  R does not normally access data from standard Excel files, so  in this walk through we first re-save this data in an R-compatbile format, a "csv" file, called "Lab1_data_PA_eagles.csv".  
+
+If the file "Lab1_data_PA_eagles.xlsx" is not available, the necessary data can be generated using the code below without having to work with data from Excel.
+
+
+```{r}
+#Generate data found in 1_Lab1_data_PA_eagles_XLS.xlsx
+
+#Years for which the number of breeding pairs of eagles in Pennsylvania, USA, is known
+year <-  c(1980,1981,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000, 2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,NA)
+
+#Number of pairs of eagles each year
+eagles <-  c(3,NA,NA,7,9,15,17,19,20,20,23,29,43,51,55,64,69,NA,96,100,NA,NA,NA,NA, NA,NA,NA,252,277,NA)
+
+#create an R dataframe
+eagles <- data.frame(year = year,
+           eagles = eagles)
+
+
+write.csv(eagles, file ="Lab1_data_PA_eagles.csv")
+
+```
+
+
+
+
+
+# Part I
+# Introduction: What is R?
+
+## What does it do?
+* It does math
+* It does stats
+* It makes great-looking figures
+* You can write computer programs to automate these things
+
+## Why use R
+* Its free - for students, government, business, anyone
+* Its free
+* Its used by statisticians to develop new statistical techniques - new techniques typically come out 1st in R
+* Its used by almost all ecological statisticians to develop new techniques (mark recapture, distance sampling)
+* It allows stats, graphics, and modeling, all for free
+
+
+## Who uses it?
+
+Some examples
+
+* Academics
+* Monsanto
+* Facebook
+* Newspapers (eg New York Times)
+* and many many more
+
+see http://blog.revolutionanalytics.com/2014/05/companies-using-r-in-2014.html
+
+# Part II
+#  Getting started with R
+
+## What we'll do
+
+* Get some data ready in Excel
+* Set up RStudio
+* Load data into Rstudio
+* Examine it
+* Plot It
+* Add more data to Excel
+* Examine it, plot it etc.
+
+
+## Part IIa. Prepping data in Excel
+
+## Save data to your R working directory (WD)
+
+Save the file "Lab1_data_PA_eagles.xlsx" to your computers desktop.  Today we will be using this as the "working directory"
+
+
+## Re-Save The Excel file as a "csv" file
+
+In Excel, follow these steps
+
+* 1)"File"
+* 2)"Save As"
+* 3)"Browse"
+* 4)Select the working directory (your desktop)
+* 5)Select "Save as type"
+* 6)Select "CSV (Comma delimited)"
+* 7)Click "Save"
+
+The data is now in a format that can be loaded into R.
+
+## Part IIb. Getting to know RStudio
+
+Main parts of RStudio
+
+* The Consol
+* The Source Viewer/Script editor
+* Plots/Packages/Help tabs
+
+You can change the locations of the windows.  I prefer to have my consol in the lower left, Plots etc in the upper left, and source viewer on thet right.
+
+These elemetns can be moved by going to Tools, Global Options, then Pane Layout.
+
+
+## Part IIc.  Loading Data into RStudio
+
+We will now take the data we saved as a .csv file and load it into R.
+
+### Set the "working directory" ("WD") in R
+
+Follow these steps 
+* "Session"
+* "Set working directory"
+*  "Choose Directory" - select your computers desktop
+*  Select directory & click  "Select folder"
+*  The command "setwd" shows up followed by the location of the directory you selected
+
+You can set your working directory to be anywhere on the computer.  It is essential to make sure that the csv file you want to load into R is in your working directory.
+
+
+## Part IId) Interacting with R 
+
+(Slide ~30 of ppt)
+
+### Executing commands in the RStuiod CONSOL
+
+* Type "getwd()" in the consol.
+* Must have both ( and )
+* Press enter
+* Prints out your working directory (WD)
+
+This should be your desktop, where we saved the csv file with the data.
+
+```{r}
+getwd()
+```
+
+If you have not saved the file Lab1_data_PA_eagles.xlsx as as csv file to your desktop and/or your working directory, do so now.
+
+
+## Part IIe) Interacting with R from the SOURCE VIEWER part 1
+
+* Click on the source viewer pane in RStudio
+* Type "getwd()" in the source viewer
+* Click on the "Run" button in the upper Right part of the pane
+* The getwd() command is  sent over to the consol and excucted
+
+```{r}
+getwd()
+```
+
+
+Try these commands in the source viewer
+* date()
+* ls()   
+Note that "l" = lower case "L"
+
+```{r}
+#Today's date
+date()
+
+#Probably won't return anything interesting:
+ls()
+```
+
+
+"ls" means "list".  More on this command later.
+
+Now try just "date" without the parentheses. What happens?
+```{r}
+date
+```
+
+This will return what appears to be nonsense.
+
+NB: parentheses are key to the execution of commands in R!
+
+When things don't work, one of the 1st things to check for are parentheses!
+
+## Part IIf) Interacting with R
+## Executing commands from the  SOURCE VIEWER part 2
+
+Type "date()"" & instead of clicking "Run" put the curser right after the  last parenthesis and press "Crlt+Enter" on the keyboard (the "+" means "at the same time", not the "+" key)
+```{r}
+date()
+```
+
+Now Execute the command "list.files()" using "Crlt+Enter" on the keyboard
+```{r,eval = F}
+list.files()
+```
+
+This tells you what files are saved in your working directory (wd).   There should be the original xlsx Excel file &t he csv file you made using "save as" (and anything else on your desktop).  We will now load the .csv file into R.
+
+
+## Loading data into R
+Copy and paste the CSV file name from the consol in the source view then Execute the command "read.csv(file = "Lab1_data_PA_eagles.csv")".  You can type it but you must be careful to have NO TYPOS.  R is unforgiving when it comes to typos.
+
+```{r}
+read.csv(file = "Lab1_data_PA_eagles.csv")
+```
+
+You must have the file name in quotation marks and include the .csv
+Any small error will cause things to not work.
+
+Here are examples of mistakes that won't work
+
+```{r, eval = F}
+#Incorrect - none of these will work
+read.csv(file = Lab1_data_PA_eagles.csv)    #missing quotes " "
+read.csv(file = "Lab1_data_PA_eagles_CSV")   #missing .csv
+read.csv(file "Lab1_data_PA_eagles_CSV")     #missing =
+
+```
+
+Note that R returns erro messages, but they aren't necessarily very helpful in figuring out what the problem actually is.
+
+## Load eagles data into an R "object"
+
+Now type this: "eagles <- read.csv(file = "Lab1_data_PA_eagles.csv") ""
+What happens when you execute this command?
+
+```{r}
+eagles <- read.csv(file = "Lab1_data_PA_eagles.csv")
+
+```
+
+It might actually look like not much has happened.  But That's good!  It means the data has successful been loaded into R. You have "assigned" the data from your file to the "object" named "eagles"
+
+##  The "<-" command
+
+"<-" is called the "assignment operator".  It is a special type of R command
+
+"<" is usually shares The comma ( , ) Key Type "shift + , " To get it.
+
+
+## R objects
+
+If you type just "eagles" and execute it as a command what happens?
+
+```{r}
+eagles
+```
+This should be the exact same data that was in the original Excel file.  We have saved these data into and "R Object" that we can now work with.
+
+Now Execute the list command ls(). You should now see "eagles".  
+This means that the  Object you assigned your data is now in your "workspace."
+
+```{r, eval = F}
+ls()
+```
+
+
+
+### Interacting with data "objects" in R & Getting to know an R data object
+
+(slide 51ish)
+
+Look at the "eagles" object using the summary() command.  DO NOT put the ">" in front of it.  This ">" is just part of the readout from the Consol.
+
+
+```{r}
+summary(eagles)
+```
+
+
+Check how big the eagles object is using dim() command[dimension]
+
+```{r}
+dim(eagles)
+```
+
+Look at the top of the eagles object
+```{r}
+head(eagles)
+```
+
+Look at the the bottom of the eagles object
+```{r}
+tail(eagles)
+```
+
+
+
+
+Try executing these commands directly from the console &  also from the source viewer using the "Cntl+Enter" shortcut (where the "+" means "at the same time")
+
+
+## R help files
+
+Call up the help information for these commands
+```{r}
+?dim
+```
+
+Unfortunately, the help files for R Are designed w/programmers in mind and are typically very encyclopedic.  You can usually get Some useful information from them but often it can be hard When you are a beginner to find What you need
+
+
+## R help on the internet
+
+You can often find information Online, eg, by googling "R dim command".  Usually the R help file will come up.  Other information will also show up.  For very basic R commands this might not always be productive, for but things related to stats, plotting, and programming there is frequently lots of information.  Also checkout the website stackoverflow.com
+
+
+## Interacting w/ data in R: plotting the number of eagles in PA
+## Making a basic plot (slide 56 ish)
+
+If you want to make a plot of the number of eagles over time in PA, what command do you think will do it? Many R commands use fairly Simple language.
+
+```{r}
+plot(eagles ~ year, data = eagles)
+```
+
+One thing that makes R tricky is that there are multiple ways to accomplish the exact same thing.  
+
+Try typing in these different commands. The following commands all produce the exact same figure, just with different colors (via "col = .").
+
+One consequence of this fact is that different books/instructors/etc. will use slightly different approaches, making it sometimes tricky to compare  code written by different people. 
+
+### Other ways of doing the exact same thing
+```{r,eval=F}
+plot(eagles$eagles ~ eagles$year,col = 2)
+plot(eagles[,"eagles"] ~ eagles[,"year"], col = 3)
+plot(eagles[,2] ~ eagles[,1], col = 4)
+plot(eagles$year,eagles$eagles, col = 5)
+```
+
+## Customizing a plot in R
+
+R plots can be customized almost infinitely. Type these different commands into the source viewer & execute them.
+
+
+#### Change the color with "col = "
+```{r}
+plot(eagles ~ year, data = eagles, col = 2)
+```
+
+#### Change the style of point with "pch = "
+```{r}
+plot(eagles ~ year, data = eagles, col = 2, pch = 2)
+```
+
+
+#### Change the x axis label
+```{r}
+plot(eagles ~ year, data = eagles, col = 2, pch = 2, xlab = "Year of census")
+```
+
+
+#### Change the y axis label
+```{r}
+plot(eagles ~ year, data = eagles, col = 2, pch = 2, xlab = "Year of census",
+     ylab = "Number of eagles")
+
+```
+
+
+### Note that in the source viewer commands 
+can be on separate lines.  Be mindful of the commas though!
+
+Here, each command is on a separate line. This will produce the exact same plot as before.
+```{r, eval = F}
+plot(eagles ~ year, 
+     data = eagles, 
+     col = 2, 
+     pch = 2, 
+     xlab = "Year of census",
+     ylab = "Number of eagles")
+```
+
+You can even include blank lines
+```{r,eval = F}
+plot(eagles ~ year, 
+     
+     data = eagles, 
+     col = 2, 
+     
+     pch = 2, 
+     
+     xlab = "Year of census",
+     
+     ylab = "Number of eagles")
+```
+
+
+
+
+### Summary stats for main PA eagle dataframe
+
+There are many commands for summary data in R, such as mean, median.  However, you have to be careful about NAs!
+
+```{r}
+mean(eagles$eagles)
+```
+
+So, you asked for the mean of the eagles data, and you got NA.  That's really annoying.  
+
+
+### "NA" is a big deal in R
+
+Try this
+```{r}
+mean(eagles$eagles, na.rm = T)
+
+```
+"na.rm = T", which means "na.rm = TRUE", which means, "should I remove the NAs = yes, do it"
+
+
+### R also is VERY picky about uppper vs. lower case
+
+```{r, eval = F}
+Mean(eagles$eagles, na.rm = T)
+
+#This returns the error message "Error in UseMethod("Mean") : 
+#  no applicable method for 'Mean' applied to an object of class "c('double', #'numeric')""
+```
+
+Note that the R error message is not very helpful : (
+
+
+
+### Most basic R commands are lower case
+
+```{r}
+mean(eagles$eagles, na.rm = T)
+median(eagles$eagles, na.rm = T)
+min(eagles$eagles, na.rm = T)
+max(eagles$eagles, na.rm = T)
+summary(eagles$eagles)
+sd(eagles$eagles, na.rm = T)
+
+```
+
+### Standard error in R
+The standard error (se) is a very common summary statistics but for some reason 
+there is not a function for it in base R
+
+#### Calcualte the standard error by hand
+
+Use the sd() command and the square root command sqrt
+```{r}
+sd(eagles$eagles, na.rm = T)/sqrt(15)
+```
+
+
+
+
+
+
+
+### Reload eagle data with a 2nd state added
+
+* Open up origla Excel CSV file
+* Type in new data from your assigned state in a new Column
+* Name the column "eagles.XX" where "xx" is the  Postal code for that state.
+* Be sure to separate the words with a period; R is unfortunately picky about what characters show Up in its columns
+
+Here is data for West Virigina as an example.  I will Add it to a column called in the spreadsheet called "eagles.WV" 
+
+* 0
+* 1
+* NA
+* 2
+* 3
+* 4
+* 5
+* 5
+* 5
+* 5
+* 6
+* 6
+* 7
+* 10
+* 12
+* 13
+* 14
+* NA
+* 19
+* NA
+* NA
+* NA
+* NA
+* NA
+* NA
+* NA
+* NA
+* NA
+* NA 
+
+
+
+
+
+## Preparing a file for loading into R
+
+Things work best when your Excel file is "clean" & only has exactly what you want in it.  Any extra, accidental typing can cause problems or make things confusing.  A good practice is to always highlight cells to the right of and below your data, right click & select "Delete".  This will remove any accidental typing that occurred. 
+Do this to the cells below your data also.
+
+
+## Reload data
+
+ReLoad data; be sure to include the "csv" at the end.  Use this code "eagles <- read.csv(file = "Lab1_data_PA_eagles.csv")".  NOTE: I changed the name of the file to include "_w_2_states" so that I wouldn't overwrite the origina file.  Don't use this code unless you changed the file name to the exact same thing
+
+```{r}
+#Use this code, w/o the "#" in front of it
+# eagles <- read.csv(file = "Lab1_data_PA_eagles.csv")
+
+#NOTE: I changed the name of the file to include "_w_2_states" so that I wouldn't overwrite the origina file.  Don't use this code unless you changed the file name to the exact smame thing
+eagles <- read.csv(file = "Lab1_data_PA_eagles_w_2_states.csv")
+
+```
+
+
+Type ls() to see what is now in your workspace
+```{r}
+ls()
+```
+
+
+
+Look at the re-loaded eagles data object
+```{r}
+summary(eagles)
+dim(eagles)
+head(eagles)
+tail(eagles)
+```
+
+
+
+
+
+### Plot the data from both states
+
+#### Plot the PA data
+Use "col = 1" to set PA to black 
+```{r}
+plot(eagles ~ year, data = eagles, col = 1)# col = 1 sets point color to black
+```
+
+
+#### Plot the 2nd state's data with the points() commnad
+
+We'll add points to the first graph using using command "points()".  Its very similar to the plot command.  Be sure to change the name of the columns of data being graphed.  Use "col = 2" within the "points()" command to set the other state to red to red
+
+
+
+```{r}
+#Main plot
+plot(eagles ~ year, data = eagles, col = 1)# col = 1 sets point color to black
+#adding points to graph with points()
+points(eagles.WV ~ year, 
+       data = eagles, 
+       col = 2) #WV data; set colors to red using col = 2
+```
+
+
+
+
+
+
+### Exporting R Figures
+
+* Click on "EXPORT" in RStudio above the graph
+* Select "Copy to clipboard"
+* A window will pop up
+* Adjust the size and dimensions By clicking and dragging the bottom Right corner
+* Click on "copy plot"
+* The window will disappear
+* The Plot is now stored in memory and can be pasted into PowerPoint or a Word docutment
+
+In MS Word, it works well to right click in a document and click on the clipboard icon.  The shortcut "Crtl+V" should work in Word and PowerPoint
+
+
+
+
+## Modifiying plots
+
+Plot can be modified using many different commands contained within the main "plot()" command.  
+
+
+### Change the plotting symbil
+change the type of point used for each state via pch = 
+
+```{r}
+
+#The main plot
+plot(eagles ~ year, data = eagles,
+     col = 1, #col = 1 for black
+     pch = 2) #pch = 2 for triangles
+
+#Add points for the other data
+points(eagles.WV ~ year , 
+       data = eagles, 
+       col = 2, #col = 2 for red
+       pch = 4) #pch = 4 for Xs
+
+```
+
+
+### Adding a legend
+
+Plots should always have legends.  Legends are highly customizable in R but can require a bit of coding.  Here is how you could do it.  This will be covered again in later labs in more detail.  One thing to note that will be discussed later is the use of the "c(...)" in the code.
+
+```{r}
+#The main plot
+plot(eagles ~ year, data = eagles, 
+     col = 1,  #color of point
+     pch = 2)  #shape of point
+
+#Add new data with col = 2 and pch = 4
+points(eagles.WV ~ year , data = eagles, 
+       col = 2, #color of point
+       pch = 4) #shape of point
+
+#Add a legend
+legend("topleft",             #where the legend goes
+       legend = c("PA","WV"), #the text the legend contains
+       col = c(1,2),          #colors of the points in the legend
+       pch = c(2,4) )         #symbols of the points
+
+```
+
+
+
+## Add data "by hand"
+
+Most work in R takes data from a spreadsheet and loads it using read.csv().
+It is possible to also enter data manually.  This is often useful for class exercises where small "toy" datasets are used that are easy to manage. We'll enter data "by hand" to add a third state of data to our figure.
+
+#### Add data for Ohio, USA
+In R terms, were are creating a "vector" of data using the "c()" command.  c() is a very very common command that we will discuss more later
+```{r}
+eagles.OH <- c(NA,NA,NA,16,19,20,24,26,30,33,38,47,57,63,73,79,88,NA,125,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+
+```
+
+
+#### Get information about the OH data
+```{r}
+#Length of the OH eagle vector
+length(eagles.OH)
+
+#Dimineions of the OH vector
+#this will not produce output for a very R-ish reason
+dim(eagles.OH)     
+
+```
+
+#### Summary statistics from the OH vector.
+
+Note again that we have to use the cryptic "na.rm = T"
+
+```{r}
+#This won't work
+mean(eagles.OH)
+
+#This will b/c we include "na.rm = T"
+mean(eagles.OH, na.rm = T)
+
+median(eagles.OH, na.rm = T)
+min(eagles.OH, na.rm = T)
+max(eagles.OH, na.rm = T)
+summary(eagles.OH)
+sd(eagles.OH, na.rm = T)
+
+```
+
+
+The standard error can be calcualted by hand
+```{r}
+#Note that the length of the OH vector is 29, but many of those values are "NA" so that the actual sample size is only 15
+sd(eagles.OH, na.rm = T)/sqrt(15)
+
+```
+
+Plots can be easily made when data is in the form of a vector
+```{r}
+### Make a boxplot
+#What is the thick black line?
+boxplot(eagles.OH)
+
+
+#Make a histogram
+hist(eagles.OH)
+
+```
+
+
+
+
+
+
+### Combine OH data with main dataframe
+
+We currently have 2 datasets living in R.  One is a dataframe that we imported from a spreadsheet in CSV form.  The other is a "vector" of data from OH.  We can combine these using a command called cbind() for "colum bind".  
+
+```{r}
+eagles <- cbind(eagles,    #original dataframe from csv
+                 eagles.OH) #OH vector
+```
+
+See what the new eagles dataframe looks like
+```{r}
+eagles
+```
+
+
+Look at the revised "eagles" object
+```{r}
+dim(eagles)
+summary(eagles)
+names(eagles)
+head(eagles)
+tail(eagles)
+
+```
+
+#### Make a plot with 3 sets of data
+We will now make a plot w/ three sets of data from the 3 columns in teh dataframe.  We make the initial plot with plot(), add West Virginia using "points(eagles.WV ~ ..." to call up the eagles.WV column from the eagles dataframe.  The OH data column is plotted using  "points(eagles.OH ~ ...".  We change the color each time using "col = ..." and change the shape of the point with "pch = ..." .
+```{r}
+
+plot(eagles ~ year, data = eagles, col = 1, pch = 2) #The main plot
+points(eagles.WV ~ year , data = eagles, col = 2, pch = 4) #add the WV data
+points(eagles.OH ~ year , data = eagles, col = 3, pch = 5) #add the OH data
+```
+
+
+#### Make a finished plot with 3 sets of data and a legend
+```{r}
+
+plot(eagles ~ year, data = eagles, col = 1, pch = 2)
+points(eagles.WV ~ year , data = eagles, col = 2, pch = 4) #WV data
+points(eagles.OH ~ year , data = eagles, col = 3, pch = 5) #OH data
+legend("topleft",             #where the legend coges
+       legend = c("PA","WV","OH"), #the text the legend contains
+       col = c(1,2,3),          #colors of the points in the legend
+       pch = c(2,4,5) )         #symbols of the points
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
