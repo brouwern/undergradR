@@ -1,0 +1,554 @@
+
+# Outline
+
+# * Regression model building
+# * Regression model testing
+# * Regression diagnostics
+# * Transformation
+# * Reporting results of regression
+# * Multiple regression
+# * Repeated measures data
+# 
+
+
+
+# Data formatting
+
+# * Wide format
+# * Long form
+
+
+
+## Wide format 
+
+# * The 1st column is the concentration of aluminum (AL) that sugar maple seeds were treated with.  
+# * Each ROW is a different tree
+# * Height growth was then measured for 4 weeks
+# * Height was recored in a seperate column
+# * This is called "wide" format b/c data for an individual thing being studied is read left to right
+# * This is a common way to collect data and present it in a table and is easy to read
+
+
+
+# The size of the dataframe
+
+dat.orig <- read.csv(file = "data_orig.csv")
+dim(dat.orig)
+
+
+#### Data in wide format
+
+head(dat.orig)
+
+
+
+
+## Long format
+
+# * This is how R needs data to be formatted for regression and ANOVA
+# * t.test also uses data in this format
+# * Note that there are MANY rows of data
+# * Data in this format is not very easy to read by eye
+# * This format matches how the math gets done by the computer
+# * ALL respone data (y variables, "height") are in a SINGLE column
+# * ALL predictor data (x variable, week) are in a single columns
+# 
+# The size of the dataframe
+
+data.long <- read.csv(file = "data_long.csv")
+dim(data.long)
+
+
+
+#### Data in long format
+head(data.long)
+
+
+
+
+# Plotting regression data
+
+#* Plot regression style data wit the plot() command
+
+
+plot(height ~ week, 
+     data = data.long,
+     main = "Seedling growth: Height ~ week"
+)
+
+
+### Extra: changing plotting symbols and other features
+
+# _You can change ..._
+# * color using col = 2 (or another number)
+# * symbol with pch = ...
+# * x axis label w/ xlab = 
+#   * y axis label w/ ylab = 
+#   
+#   
+
+
+
+#Basic regression analysis 1: height ~ week
+  
+#   * We are going to do a basic regression analysis of these data.  
+# * A VERY important caveat here is that we are ignoring the fact that the same seedlings were measured multiple times  
+# * We are therefore treating each row of data as independent * That is, as if EACH ROW represented a completley different plant that had not been measured before and will not be measured again!
+#   * This is therefore a completely invalid analysis and just done for illustration!
+#   * In reality, this data is considered "repeated measures" or "longitudinal"
+# * Proper analysis requires calculating averages growth for each plant, using just the final measurement, or using special statistical techniques
+
+
+## Model fitting
+
+#We fill fit a "null" and alternative model.
+
+
+
+### Fit a null and alternative model
+
+#"Null"" Model
+
+model.null <- lm(height ~ 1, 
+data = data.long)
+
+
+
+#"Alternative"" Model
+
+model.alt <- lm(height ~ week, 
+                data = data.long)
+
+
+## Test the models
+
+anova(model.null,
+      model.alt)
+
+
+#The F statistic and p-value are very important quantities 
+#that need to be reported in a paper.
+
+# **TASK:** Write the F-statistc and p-value for test on 
+# the worksheet.
+
+
+# **NOTE:** Because we sampled the sample plant multiple 
+#tiems this p-value is WAY too small and our sample size is WAY too big.  This is a form of psuedoreplication.
+
+
+## Examine the model against the raw data
+
+
+#Plot 1st graph
+par(mfrow = c(1,2))
+plot(height ~ week, data = data.long,
+     main = "Height ~ 1"
+)
+abline(model.null, col = 2, lwd = 3)
+
+#Plot 2nd graph
+plot(height ~ week, 
+     data = data.long,
+     main = "Height ~ week"
+)
+abline(model.alt, col = 2, lwd = 3)
+
+
+
+
+### Extra: 
+
+# _Add annotations:_
+# _You can add annotations using the "text" command.
+# Try running this 
+# text(y = 300, x = 0, "sample text",pos = 4)_
+
+
+## Examine the model parameters
+# 
+# * The parameters tell us the slope and intercept
+# * We can get them with the summary() command along with lots of other info
+# * Parameters are also sometimes called "coefficients"
+# * The R command coef() will give you just the slope and itnercept w/o any other info
+# 
+# Use the summary command to get teh parameters
+
+
+summary(model.alt)
+
+
+# **TASK:** 
+#   * Write the model equation on the worksheet
+# * First write it in words: "height ~ intercept + slope*week".  
+# * Then write it with the numbers (properly rounded) included
+
+
+
+## R^2
+# 
+# * R^2 (pronounced "r-squared") tells us how much information our model contains
+# * A high R^2 means that our model captures a lot of the variablity in the data
+# * A low R^2 means the model isn't telling us much
+# * If we fit a regression to data that all falls in a straight line, R^2 will equal 1.0
+
+# **TASK:** 
+# * Write down the "adjusted R^2"
+# * Is the model telling us much?
+
+
+
+## Regression diagnostics
+
+### Get model residuals
+
+# Use the resid() command
+
+my.resid <- resid(model.alt)
+
+
+### Model diagnostic: Histogram of residual
+
+#This gives insight into whether the assumption of 
+#normality is met
+
+par(mfrow = c(1,1))
+hist(my.resid)
+
+
+
+### Model diagnosic: qqplot
+
+# * qqplots are a better way to look at normality.  
+# * "qq" stands for "Quantile-quantile".  
+# * We want the dots in the plot to fall 
+#   close to the dotted line.
+
+par(mfrow = c(1,1))
+plot(model.alt, 2)
+
+
+
+### Get model predictions
+
+#Also called "Fitted values". 
+# Mathematicall they are called "y.hat"
+
+
+my.fitted <- fitted(model.alt)
+
+
+#Fitted values (aka predictions) are obtained by
+# plugging in your observations (x values) into the 
+# model and calculating the y value.
+
+
+
+### Diagnostic: Residual vs Fitted
+
+#This tests the assumption of "constant variance"
+
+
+plot(my.resid ~ my.fitted)
+abline(h = 0, col  = 2, lwd = 2)
+
+
+#The fanning shape of the residual is a very bad 
+# sign that the assumtpon of constant variance has
+# been violated.
+
+
+
+
+## Transformations
+
+#We can fix some problems with normality and 
+# non-cosntant variance via transformation.
+
+### Refit model to transformed data
+
+# * Note use of log() within the model formula
+# * In R, "log()" gives your the "natural log", 
+# not the base-10 log!
+
+
+model.alt.log <- lm( log(height) ~ week, 
+                     data = data.long)
+
+
+
+
+### Look at diagnostics of transformed data
+
+
+#Make a histogram of the residuals
+
+my.resid.log <- resid(model.alt.log)
+hist(my.resid.log)
+
+
+#More normal!
+
+
+
+#qqplot
+
+plot(model.alt.log, 2)
+
+# Points fall closer to the line!
+
+
+
+### Compare origianl and transformed data
+
+
+par(mfrow = c(1,2), mar = c(1,1,4,1))
+plot(model.alt, 2, main = "origingal")
+plot(model.alt.log, 2, main = "log trans")
+
+
+
+
+#Plot residuals vs. fitted (predicted values)
+
+
+par(mfrow = c(1,1))
+my.fitted.log <- fitted(model.alt.log)
+plot(my.resid.log ~ my.fitted.log)
+abline(h = 0, col  = 2, lwd = 2)
+
+
+#Not so fan-shapped any more
+
+
+
+# Reporting results of regression
+# 
+# * Results get reported in words, tables and figures in science
+# * There is some redundancy at times between them (things get repeatd), but that's ok
+
+
+## What to report for regression in the text of your paper
+
+# * the F-statistic 
+# * the degrees of freedoom of the F-test
+# * the p-value for the F-statistic
+# * the slope of the line
+# * the standard error (SE) of the line
+# * The R^2
+
+#This is a lot of stuff, but all of it is 
+# important!  
+# NOte that the slope can be considered a 
+# type of "efffect size" (more specifically, 
+# an un-standardized effect size).  
+# The standard error of the slope tells 
+# us how precisely we have estimated.
+
+## Reporting the result of these analyses
+
+#I can get all this info I need summary(model.alt.log)
+
+# I would write these results like this:
+#   "There was a strong relationship (F = ____, df = 1,266, 
+# p = ____ the height of sugar maple seedlings and time 
+# (slope = ____, SE = _____, R^2 = _____)"
+
+#**TASK:** On the worksheet complete this 
+# sentence with the appropirate info.
+
+
+
+## Why R^2 is important to report!
+
+#These results look pretty impressive when we read them. 
+#The p-value is small, the slope is positive, etc.  
+#However, when we get to the R^2 value, what do we learn?  
+#The model, even though its p-value is very small, is not 
+#really telling us much of why the data is so variable. 
+#We're explaining one aspect of the variability in the 
+#data (variation over time) but 95% of the variation 
+# [ (1 - 0.05)*100 ] remains unexplained
+
+
+
+
+
+# Multiple regression
+
+# These data are from an experiment where plants were
+#treated with aluminum, from 0 to 600 (grams?).  
+# We can see if there is an impact of the AL on growth
+
+
+plot(height ~ conc.AL, data = data.long)
+
+
+#This plot isn't very helpful because the 
+#process of growth over time is the main 
+#biological process.  The effect of AL is to _change_ 
+#the growth rate.  
+
+#Regression allows us to look at multiple factors at 
+#the same time.  We can therefore look at the impact 
+#of time on growth and AL on growth.  
+#A  full modeling of this process will take some work; 
+#I'll jsut introduce the most basic elemetns now.  
+
+#When you include multiple predictor variables
+# (x variables) in a model its called
+#**multiple regression**. 
+#We can do this in R like this:
+
+
+## A basic multiple linear regression model
+
+model.alt.2 <- lm(height ~ week + conc.AL, 
+data = data.long)
+
+
+#Note the "+" sign between week and conc.AL
+
+## Testing hypotheses with multiple regression
+
+#We can see whether how original "alt" model, 
+#with just the week varibble, compares to a multiple 
+#linear regression model with both week and AL.  
+#We do this with the anova() command as we have 
+#done for comparisons between null and alt models
+
+
+anova(model.alt,
+model.alt.2)
+
+
+
+#**TASK:** Write the F-statistc and p-value 
+#for test on the worksheet for the multiple regression.
+
+
+
+## Formula for multiple linear reression
+
+#Get the parameters using the summary() command
+
+summary(model.alt.2)
+
+
+#There are three lines for the parameters.  
+#We now have one intercepts and TWO DIFFERNT slope values.
+
+#**TASK:** Write the word formula and mathematical 
+#formula for the multiple regression model.
+
+#The word formula is:
+#   height ~ intercept + slope1*conc.AL + slope2*week
+
+
+
+### R^2 from multiple regression
+
+#Adding more predictor variables allows us to 
+#explain more of what is going on in a dataset. 
+# R^2 will ALWAYS go down when we add a new variable
+
+
+summary(model.alt.2)
+
+
+
+# **TASK:** Write R^2 for the multiple regression model.
+
+
+
+
+# Endpoint analysis of "Repeated measures" data
+
+# * All of the analyses so far are not appropriate 
+# for these data.  
+# * This is is because multiple measurements have
+# been made on the same plant, violating the assumption 
+# of independence central to standard statistics
+# * This type of data is common 
+# * When you have this kind of data, a good way to 
+# start your analysis is by just looking at the last
+# time point
+# * We can consider this an "end point analysis" of 
+# our "longitudinal data"
+
+# Let's go back to the original "wide" dataset
+
+
+head(dat.orig)
+
+
+# * The last column has the height of the 
+# seedlings at the end of the 4 week experiment.  
+# * We can do a regression with these data 
+# using the concentration of aluminum
+
+
+
+## End point analysis: Plot height ~ AL for just week 4
+
+
+plot(ht.wk.4 ~ conc.AL, 
+     data = dat.orig)
+
+
+
+## End point analysis: Model height ~ AL for week four
+
+#Build the model
+
+model.wk.4 <- lm(ht.wk.4 ~ conc.AL, 
+                 data = dat.orig)
+
+
+
+## Compare end-point model to data
+
+# ** TASK:** Make a graph of the model plotted 
+# on the data.
+# This requires the plot() and abline() command.  
+# The code was used above.
+
+
+## Look at the results of end-point model
+
+#Look at the results
+
+summary(model.wk.4)
+
+
+#** TASK ** Write a sentence that summarizes this model
+
+
+
+## Look at model diagnostics for end-point analysis
+
+#We can get the residuals vs. fitted diagnostic plot 
+#in a single step below using "plot(model.wk.4, which = 1)".  We get the qqplot with "which = 2".
+
+
+par(mfrow = c(1,2))
+plot(model.wk.4, which = 1) #residuals vs. fitted
+plot(model.wk.4, which = 2) #qqplot
+
+
+
+#** TASK:** Print off this diagnostic plot and 
+# write several sentences about what it tells you.
+
+
+
+## Transform end-point model
+
+#A log transformation might improve the model. 
+#Implement this and check the residuals.  
+#Note that you can transform the data within the
+#model funciton as "log(ht.wk.4)".  
+
+#** TASK:** Write the code needed for the 
+# transformation onto the worksheet.
+
