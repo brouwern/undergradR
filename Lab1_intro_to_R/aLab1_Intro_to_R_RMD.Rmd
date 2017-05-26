@@ -11,9 +11,12 @@ rm(list = ls())
 ```
 
 # ENS 495 Design & Analysis Lab 1: Intro to R
-Originally delivered Thurs. Sep 01, 2016
+Originally delivered:
+Thurs. Sep 01, 2016
 California University of Pennsylvania
 Department of Biological & Environmental Sciences
+
+Lab written by:
 Nathan Brouwer, Phd
 brouwern@gmail.com
 https://github.com/brouwern
