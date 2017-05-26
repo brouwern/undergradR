@@ -1,0 +1,40 @@
+---
+title: "Scatterplots in R"
+author: "brouwern@gmail.com"
+date: "August 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Preliminaries
+#$ Get the data from the ggplot2 package
+
+#$ Load the data into R
+```{r}
+library(ggplot2)
+data(msleep)
+```
+
+## Look at the data
+```{r}
+#How much data is there?
+dim(msleep)
+
+#What does the data look like
+head(msleep)
+
+#Summary of the data
+summary(msleep)
+
+```
+
+
+# PLotting basics
+## Make a basic scatterplot
+```{r}
+plot(sleep_total ~ brainwt, data = msleep)
+```
+
