@@ -1,0 +1,46 @@
+---
+title: "Setting plotting limits & comparing distributions"
+author: "brouwern@gmail.com"
+date: "September 23, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 3 Question 28
+
+
+```{r}
+AA <- c(0.58,0.59,0.69,.72,.78,.78,.81,.85,.85,.92,.93,.95)
+BB <- c(0.15,.22,.3,.37,.38,.5,.9)
+
+```
+
+
+
+# Histograms with default margins determine by R
+
+R doesn't know that we want to compare the histograms, so it adjusts each one indepdently to fit the data.  Why might this be a problem?
+
+```{r}
+par(mfrow = c(1,2))
+hist(AA, ylab = "", lwd = 2)
+
+hist(BB, ylab = c(""),lwd = 2)
+
+```
+
+
+
+# Histograms with margins adjusted so that both are on same scale
+```{r}
+par(mfrow = c(1,2))
+ylim. <- c(0,4)
+xlim. <- c(0,1)
+hist(AA, ylab = "", ylim = ylim., xlim = xlim., lwd = 2)
+hist(BB, ylab = c(""), ylim = ylim., xlim = xlim., lwd = 2)
+
+```
+
