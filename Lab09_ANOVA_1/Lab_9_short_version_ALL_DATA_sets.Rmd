@@ -1,0 +1,881 @@
+---
+title: 'Lab 9: All Data'
+author: "brouwern@gmail.com"
+date: "November 6, 2016"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r, echo = F}
+# means = 3 mean values calcualted from raw data
+# se = 3 standard errors
+# categories = 3 categorical / factors that group the data
+# x.axis.label = what should be plotted on the x axis
+# y.axis.label = what should be plotted on the y axis
+
+
+#### The function STARTS here ####
+plot3means <- function(means,
+                           se,
+                           groups = 3,
+                           categories = c("Group 1","Group 2", "Group 3"),
+                           x.axis.label = "x axis",
+                           y.axis.label = "y axis",
+                       axis.adjust = 0){
+  
+  # reset plot window
+  #par(mfrow = c(1,1), 
+  #    mar = c(3.5,3,2,1))
+                             
+  # calculate values for plotting limits            
+  y.max <- max(means+2*se) +                    
+    max(means+2*se)*axis.adjust
+  y.min <- min(means-2*se) - 
+    max(means+2*se)*axis.adjust
+  
+  if(groups == 2){ x.values <- c(0.25, 0.5)}
+  if(groups == 3){ x.values <- c(0.25, 0.5,0.75)}
+  
+  x.axis.min <- min(x.values)-0.05
+  x.axis.max <- max(x.values)+0.05
+  
+  x.limits <- c(x.axis.min,x.axis.max)
+  
+  #Plot means
+  plot(means ~ x.values,
+       xlim = x.limits,
+       ylim = c(y.min,y.max),
+       xaxt = "n",
+       xlab = "",
+       ylab = "",
+       cex = 1.25,
+       pch = 16)
+  
+  axis(side = 1, 
+       at = x.values,
+       labels = categories,
+      )
+  
+  #Plot upper error bar 
+  lwd. <- 2
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means+2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.)
+  
+  #Plot lower error bar
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means-2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.) 
+  
+  mtext(text = x.axis.label,side = 1,line = 1.75)
+  mtext(text = y.axis.label,side = 2,line = 1.95)
+  mtext(text = "Error bars = 95% CI",side = 3,line = 0,adj = 0)
+  
+print("This function plots approximate 95% confidence intervals based on standard error imput by the user.  DO not enter 95% CIs")
+  
+}
+
+#### The function ENDS here ####
+```
+
+
+
+```{r}
+# means = 3 mean values calcualted from raw data
+# se = 3 standard errors
+# categories = 3 categorical / factors that group the data
+# x.axis.label = what should be plotted on the x axis
+# y.axis.label = what should be plotted on the y axis
+
+
+#### The function STARTS here ####
+plotTukeysHSD <- function(tukey.out,
+                           x.axis.label = "Comparison",
+                           y.axis.label = "Effect Size",
+                       axis.adjust = 0){
+  
+  tukey.out <- as.data.frame(tukey.out[[1]])
+  means <- tukey.out$diff
+  categories <- row.names(tukey.out)
+  groups <- length(categories)
+  ci.low <- tukey.out$lwr
+  ci.up  <- tukey.out$upr                         
+   
+  # reset plot window
+  #par(mfrow = c(1,1), 
+  #    mar = c(3.5,3,2,1))
+                             
+  # calculate values for plotting limits            
+  y.max <- max(ci.up) +                    
+    max(ci.up)*axis.adjust
+  y.min <- min(ci.low) - 
+    max(ci.low)*axis.adjust
+  
+  if(groups == 2){ x.values <- c(0.25, 0.5)}
+  if(groups == 3){ x.values <- c(0.25, 0.5,0.75)}
+  
+  x.axis.min <- min(x.values)-0.05
+  x.axis.max <- max(x.values)+0.05
+  
+  x.limits <- c(x.axis.min,x.axis.max)
+  
+  #Plot means
+  plot(means ~ x.values,
+       xlim = x.limits,
+       ylim = c(y.min,y.max),
+       xaxt = "n",
+       xlab = "",
+       ylab = "",
+       cex = 1.25,
+       pch = 16)
+  
+  axis(side = 1, 
+       at = x.values,
+       labels = categories,
+      )
+  
+  #Plot upper error bar 
+  lwd. <- 2
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = ci.up,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.)
+  
+  #Plot lower error bar
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = ci.low,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.) 
+  
+  mtext(text = x.axis.label,side = 1,line = 1.75)
+  mtext(text = y.axis.label,side = 2,line = 1.95)
+  mtext(text = "Error bars = 95% CI",side = 3,line = 0,adj = 0)
+  
+  
+}
+```
+
+
+
+## Outline
+
+* Make 4 datasets of different antler measurements (mass, basal circumference, main beam length, inside spread)
+* ANOVA omnibus F-test
+* Pairwise t-tests
+* TukeyHSD tests
+* Plot effect sizes from TukeyHSD
+
+
+
+# Preliminaries: Make datasets
+
+### Datset 1) Antler mass data
+
+```{r}
+mass<-c(472.5114,722.7774,548.6796,464.3168,577.2037,406.7964,555.8052,657.5226,734.7416,919.2983,665.6099,570.3627,429.5572,520.9726,346.0116,639.3096,544.8374,657.6512,802.2045,443.339,545.9901,791.3983,884.5803,763.2926,782.1005,840.2083,417.7051,735.8959,759.7498,877.0629)
+n <- length(mass)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+df.mass <- data.frame(antler.mass = mass,
+                      diet = diet)
+rm(list = c("mass", "diet","n"))
+```
+
+<br><br>
+
+### Datset 2) Antler mass circumference data
+```{r}
+circum <- c(94.85394,83.21354,64.94166,96.9141,77.03692,113.2507,90.95746,95.83833,82.66041,97.46359,91.61469,96.4177,100.5873,99.3556,94.23969,57.94891,134.9324,95.01268,128.2977,129.307,70.39667,133.7504,121.0767,105.3898,86.81835,106.1906,136.0613,74.95854,112.6994,110.5714)
+
+
+n <- length(circum)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+df.circum <- data.frame(antler.circum = circum,
+                        diet = diet)
+rm(list = c("circum", "diet","n"))
+```
+
+<br><br>
+
+### Datset 3)  Antler beam length data
+
+```{r}
+beam <- c(335.6464,410.2204,425.6838,355.1535,346.7697,399.8559,425.4827,447.6792,397.116,428.6749,406.034,380.342,437.5513,444.8916,437.9827,391.446,425.6301,404.2163,461.0517,568.163,457.6777,459.0168,270.5814,440.9724,412.0543,428.0725,247.2619,386.4118,423.5378,505.5221)
+n <- length(beam)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+df.beam <- data.frame(antler.beam = beam,
+                      diet = diet)
+rm(list = c("beam", "diet","n"))
+```
+
+<br><br>
+
+### Datset 4) Antler spread data
+```{r}
+spread <- c(271.4356,291.3746,346.3026,345.6056,234.1441,339.7039,291.5156,275.9856,223.7703,316.9263,375.1109,384.1469,396.6894,272.4158,356.8185,393.6393,412.3185,425.7551,390.7663,381.4302,341.7604,350.6951,306.0166,354.8825,312.0478,459.7191,415.1186,321.8994,281.539,372.0439)
+n <- length(spread)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+df.spread <- data.frame(antler.spread = spread,
+                        diet = diet)
+rm(list = c("spread", "diet","n"))
+```
+
+
+# Data analysis: Mass data
+
+### Summary stats for all mass data
+
+#### Basic summary stats
+```{r}
+mean(df.mass$antler.mass)
+var(mean(df.mass$antler.mass))
+sd.mass <- sd(df.mass$antler.mass)
+n.mass <- length(mean(df.mass$antler.mass))
+```
+
+#### Standard errors
+```{r}
+sd.mass/sqrt(n.mass)
+```
+
+<br><br>
+
+### Summary stats by diet treatment
+
+Use tapply to get means and standard deviations by group.
+
+#### Calcualte means with tapply
+```{r}
+mean.mass <- tapply(df.mass$antler.mass,
+                    df.mass$diet,
+                    FUN = mean)
+```
+
+<br><br>
+
+#### Calcualte sd with tapply
+```{r}
+sd.mass <- tapply(df.mass$antler.mass,
+                    df.mass$diet,
+                    FUN = sd)
+```
+
+
+#### Calcualte sample size with tapply
+```{r}
+n.mass <- tapply(df.mass$antler.mass,
+                    df.mass$diet,
+                    FUN = length)
+```
+
+#### Calcualte SD
+
+```{r}
+se.mass <- sd.mass/sqrt(n.mass)
+```
+
+
+### Plot the means
+
+This requires the plot3means function from
+https://rpubs.com/brouwern/plot3means
+
+```{r}
+categories <- levels(df.mass$diet)
+
+plot3means(means = mean.mass,
+           se = se.mass,
+           categories = categories,
+           y.axis.label = "Anterl mass (g)"
+           )
+```
+
+
+
+
+
+<br><br>
+
+### Plot raw data
+```{r}
+boxplot(antler.mass ~ diet,df.mass)
+```
+
+<br><br>
+
+### ANOVA omnibus F-test
+
+Build models
+```{r}
+model.null <- lm(antler.mass ~ 1, data = df.mass)
+model.alt  <- lm(antler.mass ~ diet, data = df.mass)
+```
+
+Compare models to get F statistic and p-values
+```{r}
+anova(model.null, model.alt)
+```
+
+Save model output
+```{r}
+mass.anova.table <- anova(model.null, model.alt)
+```
+
+
+<br><br>
+
+### Pairwise t-test
+
+summary(df.mass)
+
+Make table of pairwise t-test
+```{r}
+pairwise.t.test(x = df.mass$antler.mass,
+                g = df.mass$diet,
+                p.adjust.method = "none")
+```
+
+
+Save output
+```{r}
+mass.pairwise.p <- pairwise.t.test(x = df.mass$antler.mass,
+                g = df.mass$diet,
+                p.adjust.method = "none")
+```
+
+
+### TukeyHSD p-values
+
+Fit model with aov() instead of lm()
+```{r}
+mass.aov <- aov(antler.mass ~ diet, data = df.mass)
+```
+
+Calcaulte corrected p valeus and effect sizes
+```{r}
+TukeyHSD(mass.aov)
+```
+
+<br><br><br>
+
+### Plot effect sizes from TukeyHSD
+
+Save output of TukeyHSD to an object
+```{r}
+mass.tuk <- TukeyHSD(mass.aov)
+```
+
+Use plotTukeyHSD from
+https://rpubs.com/brouwern/plotTukeyHSD
+```{r}
+plotTukeysHSD(mass.tuk)
+```
+
+<br><br>
+
+
+# Circumference data
+`
+# Data analysis
+
+### Summary stats for all data
+
+#### Basic summary stats
+```{r}
+mean(df.circum$antler.circum)
+var(mean(df.circum$antler.circum))
+sd.circum <- sd(df.circum$antler.circum)
+n.circum <- length(mean(df.circum$antler.circum))
+```
+
+#### Standard errors
+```{r}
+sd.circum/sqrt(n.circum)
+```
+
+<br><br>
+
+### Summary stats by diet treatment
+
+Use tapply to get means and standard deviations by group.
+
+#### Calcualte means with tapply
+```{r}
+mean.circum <- tapply(df.circum$antler.circum,
+                    df.circum$diet,
+                    FUN = mean)
+```
+
+<br><br>
+
+#### Calcualte sd with tapply
+```{r}
+sd.circum <- tapply(df.circum$antler.circum,
+                    df.circum$diet,
+                    FUN = sd)
+```
+
+
+#### Calcualte sample size with tapply
+```{r}
+n.circum <- tapply(df.circum$antler.circum,
+                    df.circum$diet,
+                    FUN = length)
+```
+
+#### Calcualte SD
+
+```{r}
+se.circum <- sd.circum/sqrt(n.circum)
+```
+
+
+### Plot the means
+
+This requires the plot3means function from
+https://rpubs.com/brouwern/plot3means
+
+```{r}
+categories <- levels(df.circum$diet)
+
+plot3means(means = mean.circum,
+           se = se.circum,
+           categories = categories,
+           y.axis.label = "Anterl circum (g)"
+           )
+```
+
+
+
+
+
+<br><br>
+
+### Plot raw data
+```{r}
+boxplot(antler.circum ~ diet,df.circum)
+```
+
+<br><br>
+
+### ANOVA omnibus F-test
+
+Build models
+```{r}
+model.null <- lm(antler.circum ~ 1, data = df.circum)
+model.alt  <- lm(antler.circum ~ diet, data = df.circum)
+```
+
+Compare models to get F statistic and p-values
+```{r}
+anova(model.null, model.alt)
+```
+
+Save model output
+```{r}
+circum.anova.table <- anova(model.null, model.alt)
+```
+
+
+<br><br>
+
+### Pairwise t-test
+
+summary(df.circum)
+
+Make table of pairwise t-test
+```{r}
+pairwise.t.test(x = df.circum$antler.circum,
+                g = df.circum$diet,
+                p.adjust.method = "none")
+```
+
+
+Save output
+```{r}
+circum.pairwise.p <- pairwise.t.test(x = df.circum$antler.circum,
+                g = df.circum$diet,
+                p.adjust.method = "none")
+```
+
+
+### TukeyHSD p-values
+
+Fit model with aov() instead of lm()
+```{r}
+circum.aov <- aov(antler.circum ~ diet, data = df.circum)
+```
+
+Calcaulte corrected p valeus and effect sizes
+```{r}
+TukeyHSD(circum.aov)
+```
+
+<br><br><br>
+
+### Plot effect sizes from TukeyHSD
+
+Save output of TukeyHSD to an object
+```{r}
+circum.tuk <- TukeyHSD(circum.aov)
+```
+
+Use plotTukeyHSD from
+https://rpubs.com/brouwern/plotTukeyHSD
+```{r}
+plotTukeysHSD(circum.tuk)
+```
+
+
+# Antler main beam data
+
+# Data analysis
+
+### Summary stats for all data
+
+#### Basic summary stats
+```{r}
+mean(df.beam$antler.beam)
+var(mean(df.beam$antler.beam))
+sd.beam <- sd(df.beam$antler.beam)
+n.beam <- length(mean(df.beam$antler.beam))
+```
+
+#### Standard errors
+```{r}
+sd.beam/sqrt(n.beam)
+```
+
+<br><br>
+
+### Summary stats by diet treatment
+
+Use tapply to get means and standard deviations by group.
+
+#### Calcualte means with tapply
+```{r}
+mean.beam <- tapply(df.beam$antler.beam,
+                    df.beam$diet,
+                    FUN = mean)
+```
+
+<br><br>
+
+#### Calcualte sd with tapply
+```{r}
+sd.beam <- tapply(df.beam$antler.beam,
+                    df.beam$diet,
+                    FUN = sd)
+```
+
+
+#### Calcualte sample size with tapply
+```{r}
+n.beam <- tapply(df.beam$antler.beam,
+                    df.beam$diet,
+                    FUN = length)
+```
+
+#### Calcualte SD
+
+```{r}
+se.beam <- sd.beam/sqrt(n.beam)
+```
+
+
+### Plot the means
+
+This requires the plot3means function from
+https://rpubs.com/brouwern/plot3means
+
+```{r}
+categories <- levels(df.beam$diet)
+
+plot3means(means = mean.beam,
+           se = se.beam,
+           categories = categories,
+           y.axis.label = "Anterl beam (g)"
+           )
+```
+
+
+
+
+
+<br><br>
+
+### Plot raw data
+```{r}
+boxplot(antler.beam ~ diet,df.beam)
+```
+
+<br><br>
+
+### ANOVA omnibus F-test
+
+Build models
+```{r}
+model.null <- lm(antler.beam ~ 1, data = df.beam)
+model.alt  <- lm(antler.beam ~ diet, data = df.beam)
+```
+
+Compare models to get F statistic and p-values
+```{r}
+anova(model.null, model.alt)
+```
+
+Save model output
+```{r}
+beam.anova.table <- anova(model.null, model.alt)
+```
+
+
+<br><br>
+
+### Pairwise t-test
+
+summary(df.beam)
+
+Make table of pairwise t-test
+```{r}
+pairwise.t.test(x = df.beam$antler.beam,
+                g = df.beam$diet,
+                p.adjust.method = "none")
+```
+
+
+Save output
+```{r}
+beam.pairwise.p <- pairwise.t.test(x = df.beam$antler.beam,
+                g = df.beam$diet,
+                p.adjust.method = "none")
+```
+
+
+### TukeyHSD p-values
+
+Fit model with aov() instead of lm()
+```{r}
+beam.aov <- aov(antler.beam ~ diet, data = df.beam)
+```
+
+Calcaulte corrected p valeus and effect sizes
+```{r}
+TukeyHSD(beam.aov)
+```
+
+<br><br><br>
+
+### Plot effect sizes from TukeyHSD
+
+Save output of TukeyHSD to an object
+```{r}
+beam.tuk <- TukeyHSD(beam.aov)
+```
+
+Use plotTukeyHSD from
+https://rpubs.com/brouwern/plotTukeyHSD
+```{r}
+plotTukeysHSD(beam.tuk)
+```
+
+
+# Antler Spread Data
+
+# Data analysis
+
+### Summary stats for all data
+
+#### Basic summary stats
+```{r}
+mean(df.spread$antler.spread)
+var(mean(df.spread$antler.spread))
+sd.spread <- sd(df.spread$antler.spread)
+n.spread <- length(mean(df.spread$antler.spread))
+```
+
+#### Standard errors
+```{r}
+sd.spread/sqrt(n.spread)
+```
+
+<br><br>
+
+### Summary stats by diet treatment
+
+Use tapply to get means and standard deviations by group.
+
+#### Calcualte means with tapply
+```{r}
+mean.spread <- tapply(df.spread$antler.spread,
+                    df.spread$diet,
+                    FUN = mean)
+```
+
+<br><br>
+
+#### Calcualte sd with tapply
+```{r}
+sd.spread <- tapply(df.spread$antler.spread,
+                    df.spread$diet,
+                    FUN = sd)
+```
+
+
+#### Calcualte sample size with tapply
+```{r}
+n.spread <- tapply(df.spread$antler.spread,
+                    df.spread$diet,
+                    FUN = length)
+```
+
+#### Calcualte SD
+
+```{r}
+se.spread <- sd.spread/sqrt(n.spread)
+```
+
+
+### Plot the means
+
+This requires the plot3means function from
+https://rpubs.com/brouwern/plot3means
+
+```{r}
+par(mfrow = c(1,1))
+categories <- levels(df.spread$diet)
+plot3means(means = mean.spread,
+           se = se.spread,
+           categories = categories,
+           x.axis.label = "Diet treatment",
+           y.axis.label = "Anter spread (mm)",axis.adjust = 0.01
+           )
+```
+
+
+
+
+
+<br><br>
+
+### Plot raw data
+```{r}
+boxplot(antler.spread ~ diet,df.spread)
+```
+
+<br><br>
+
+### ANOVA omnibus F-test
+
+Build models
+```{r}
+model.null <- lm(antler.spread ~ 1, data = df.spread)
+model.alt  <- lm(antler.spread ~ diet, data = df.spread)
+```
+
+Compare models to get F statistic and p-values
+```{r}
+anova(model.null, model.alt)
+```
+
+Save model output
+```{r}
+spread.anova.table <- anova(model.null, model.alt)
+```
+
+
+<br><br>
+
+### Pairwise t-test
+
+Make table of pairwise t-test
+```{r}
+pairwise.t.test(x = df.spread$antler.spread,
+                g = df.spread$diet,
+                p.adjust.method = "none")
+```
+
+
+Save output
+```{r}
+spread.pairwise.p <- pairwise.t.test(x = df.spread$antler.spread,
+                g = df.spread$diet,
+                p.adjust.method = "none")
+```
+
+
+
+
+
+
+
+
+### TukeyHSD p-values
+
+Fit model with aov() instead of lm()
+```{r}
+spread.aov <- aov(antler.spread ~ diet, data = df.spread)
+```
+
+Calcaulte corrected p valeus and effect sizes
+```{r}
+TukeyHSD(spread.aov)
+```
+
+<br><br><br>
+
+### Plot effect sizes from TukeyHSD
+
+Save output of TukeyHSD to an object
+```{r}
+spread.tuk <- TukeyHSD(spread.aov)
+```
+
+Use plotTukeyHSD from
+https://rpubs.com/brouwern/plotTukeyHSD
+```{r}
+plotTukeysHSD(spread.tuk)
+```
+
+
+
+<br><br>
+
+All output
+
+```{r}
+mass.anova.table
+mass.pairwise.p
+mass.aov
+mass.tuk
+
+beam.anova.table
+beam.pairwise.p
+beam.aov
+beam.tuk
+
+circum.anova.table
+circum.pairwise.p
+circum.aov
+circum.tuk
+
+spread.anova.table
+spread.pairwise.p
+spread.aov
+spread.tuk
+```
+

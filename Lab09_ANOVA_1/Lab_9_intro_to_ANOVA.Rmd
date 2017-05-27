@@ -1,0 +1,527 @@
+---
+title: "Lab 9: Intro to ANOVA"
+author: "brouwern@gmail.com"
+date: "November 3, 2016"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Updates to this lab will be emailed and posted to the course Facebook page
+https://www.facebook.com/groups/930301587096169/?ref=bookmarks
+
+# Inspiration
+Asleson et al. 1997.  Effects of seasonal protein restriction on antlerogenesis and body mass in adult male white-tailed deer.  Journal of Wildlife Management 61.
+
+# Create data
+
+Make dataframe for analysis
+```{r}
+mass<-c(472.5114,722.7774,548.6796,464.3168,577.2037,406.7964,555.8052,657.5226,734.7416,919.2983,665.6099,570.3627,429.5572,520.9726,346.0116,639.3096,544.8374,657.6512,802.2045,443.339,545.9901,791.3983,884.5803,763.2926,782.1005,840.2083,417.7051,735.8959,759.7498,877.0629)
+
+n <- length(mass)/3
+
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+
+antlers <- data.frame(antler.mass = mass,
+                 diet = diet)
+
+rm(list = c("mass", "diet","n"))
+
+```
+
+Look at raw antler data
+```{r}
+summary(antlers)
+```
+
+
+
+# plot3means function
+Need to load this function (or more general plotmeans() )
+```{r, include=FALSE}
+# means = 3 mean values calcualted from raw data
+# se = 3 standard errors
+# categories = 3 categorical / factors that group the data
+# x.axis.label = what should be plotted on the x axis
+# y.axis.label = what should be plotted on the y axis
+
+
+#### The function STARTS here ####
+plot3means <- function(means,
+                           se,
+                           groups = 3,
+                           categories = c("Group 1","Group 2", "Group 3"),
+                           x.axis.label = "x axis",
+                           y.axis.label = "y axis",
+                       axis.adjust = 0){
+  
+  # reset plot window
+  #par(mfrow = c(1,1), 
+  #    mar = c(3.5,3,2,1))
+                             
+  # calculate values for plotting limits            
+  y.max <- max(means+2*se) +                    
+    max(means+2*se)*axis.adjust
+  y.min <- min(means-2*se) - 
+    max(means+2*se)*axis.adjust
+  
+  if(groups == 2){ x.values <- c(0.25, 0.5)}
+  if(groups == 3){ x.values <- c(0.25, 0.5,0.75)}
+  
+  x.axis.min <- min(x.values)-0.05
+  x.axis.max <- max(x.values)+0.05
+  
+  x.limits <- c(x.axis.min,x.axis.max)
+  
+  #Plot means
+  plot(means ~ x.values,
+       xlim = x.limits,
+       ylim = c(y.min,y.max),
+       xaxt = "n",
+       xlab = "",
+       ylab = "",
+       cex = 1.25,
+       pch = 16)
+  
+  axis(side = 1, 
+       at = x.values,
+       labels = categories,
+      )
+  
+  #Plot upper error bar 
+  lwd. <- 2
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means+2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.)
+  
+  #Plot lower error bar
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means-2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.) 
+  
+  mtext(text = x.axis.label,side = 1,line = 1.75)
+  mtext(text = y.axis.label,side = 2,line = 1.95)
+  mtext(text = "Error bars = 95% CI",side = 3,line = 0,adj = 0)
+  
+print("This function plots approximate 95% confidence intervals based on standard error imput by the user.  DO not enter 95% CIs")
+  
+}
+
+#### The function ENDS here ####
+```
+
+
+
+## plotTukeysHSD function
+Need to load this function
+```{r, include=FALSE}
+# means = 3 mean values calcualted from raw data
+# se = 3 standard errors
+# categories = 3 categorical / factors that group the data
+# x.axis.label = what should be plotted on the x axis
+# y.axis.label = what should be plotted on the y axis
+
+
+#### The function STARTS here ####
+plotTukeysHSD <- function(tukey.out,
+                           x.axis.label = "Comparison",
+                           y.axis.label = "Effect Size",
+                       axis.adjust = 0){
+  
+  tukey.out <- as.data.frame(tukey.out[[1]])
+  means <- tukey.out$diff
+  categories <- row.names(tukey.out)
+  groups <- length(categories)
+  ci.low <- tukey.out$lwr
+  ci.up  <- tukey.out$upr                         
+   
+  # reset plot window
+  #par(mfrow = c(1,1), 
+  #    mar = c(3.5,3,2,1))
+                             
+  # calculate values for plotting limits            
+  y.max <- max(ci.up) +                    
+    max(ci.up)*axis.adjust
+  y.min <- min(ci.low) - 
+    max(ci.low)*axis.adjust
+  
+  if(groups == 2){ x.values <- c(0.25, 0.5)}
+  if(groups == 3){ x.values <- c(0.25, 0.5,0.75)}
+  
+  x.axis.min <- min(x.values)-0.05
+  x.axis.max <- max(x.values)+0.05
+  
+  x.limits <- c(x.axis.min,x.axis.max)
+  
+  #Plot means
+  plot(means ~ x.values,
+       xlim = x.limits,
+       ylim = c(y.min,y.max),
+       xaxt = "n",
+       xlab = "",
+       ylab = "",
+       cex = 1.25,
+       pch = 16)
+  
+  axis(side = 1, 
+       at = x.values,
+       labels = categories,
+      )
+  
+  #Plot upper error bar 
+  lwd. <- 2
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = ci.up,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.)
+  
+  #Plot lower error bar
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = ci.low,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.) 
+  
+  mtext(text = x.axis.label,side = 1,line = 1.75)
+  mtext(text = y.axis.label,side = 2,line = 1.95)
+  mtext(text = "Error bars = 95% CI",side = 3,line = 0,adj = 0)
+  
+  
+}
+
+#### The function ENDS here ####
+```
+
+
+<br><br>
+
+# Part 1: Summary stats & plotting means
+## 1) Summary stats on all data
+
+In this section the grand mean on ALL the data is calculated; data is NOT broken up by treatment!  Data is considered by subgroup below
+
+```{r}
+# total sample size (all observations)
+dim(antlers)
+
+n.total <- length(antlers$antler.mass)
+
+#mean of ALL samples
+summary(antlers)
+
+mean(antlers$antler.mass)
+
+#variance of ALL samples
+var(antlers$antler.mass)
+
+#stdev of ALL samples
+mass.sd <- sd(antlers$antler.mass)
+```
+
+<br><br>
+
+## 2) SE for ** all ** data
+
+This ignores treatments.  All data are combined / pooled.
+
+```{r}
+#Using saved sd
+mass.se <- mass.sd/sqrt(n.total)
+
+sqrt.n <- sqrt(n.total)
+
+mass.se <- mass.sd/sqrt.n
+
+#Using raw data
+mass.se <- sd(antlers$antler.mass)/
+             sqrt(length(antlers$antler.mass))
+```
+
+## 3) 95% CI for all data
+
+This is the 95% confidence interval around the overall/grand mean.  
+
+```{r}
+1.96*mass.se
+```
+
+
+## 4) Calcualte summary stats for each group
+
+Each group is considered seperately.
+```{r}
+# Means
+mass.3.means <- tapply(antlers$antler.mass,
+       antlers$diet,
+       mean)
+
+#SD
+mass.3.sd <- tapply(antlers$antler.mass,
+       antlers$diet,
+       sd)
+
+#sample size n
+mass.3.n <- tapply(antlers$antler.mass,
+       antlers$diet,
+       length)
+```
+
+
+## 5) Calcualte the 3 SE values
+```{r}
+
+mass.3.se <- mass.3.sd/sqrt(mass.3.n)
+```
+
+
+## 6) Plot the 3 mean valeus
+
+```{r}
+#Using the levels command
+antler.groups <- levels(antlers$diet)
+
+#By hand
+antler.groups <- c("Hi.Hi", "Hi.Lo", "Lo.Hi")
+
+plot3means(means = mass.3.means,
+           se = mass.3.se,
+           categories = antler.groups,
+           x.axis.label = "Diet treatment",
+           y.axis.label = "Antler mass"
+            )
+```
+
+
+
+```{r}
+boxplot(antler.mass ~ diet, data = antlers)
+```
+
+
+<br><br><br>
+
+# Part 2: Omnibus ANOVA test
+
+## 7 & 8) Build the null (Ho) and alternative (Ha) models
+
+```{r}
+model.null <- lm(antler.mass ~ 1, 
+                 data = antlers)
+
+model.alt <- lm(antler.mass ~ diet, 
+                 data = antlers)
+```
+
+
+<br><br>
+
+## 9-12) Conduct the Omnibus test and get the ANOVA output
+
+Produce the ANOVA table
+```{r}
+anova(model.null,
+      model.alt)
+```
+
+
+## OPTIONAL:
+
+If you are curious and things are going well, do the optional activities
+
+
+
+### The summary command on an lm() object
+```{r}
+summary(model.null)
+summary(model.alt)
+
+```
+
+
+### The anova command on a single lm() object
+```{r}
+anova(model.alt)
+```
+
+
+### Change how model is defined
+```{r}
+model.alt.2  <- lm(antler.mass ~-1 + diet, data = antlers)
+
+summary(model.alt.2)
+```
+
+
+### Plotting model diagnostics
+```{r}
+plot(model.alt)
+```
+
+
+
+<br><br><br><br>
+
+# Part 3: Pairwise comparisons
+
+## 13-15) Get pairwise p-valeus
+```{r}
+pairwise.t.test(x = antlers$antler.mass,
+                g = antlers$diet,
+                p.adjust.method = "none")
+```
+
+
+
+<br><br><br>
+
+# Part 4: Pairwise comparisons, correcting for multiple comparisons, & effect sizes
+
+
+## 17) Build model with aov() function
+```{r}
+model.alt.aov <- aov(antler.mass ~ diet, 
+                     data = antlers)
+
+
+```
+
+## 18) Get p-values with Tukey's HSD 
+
+```{r}
+TukeyHSD(model.alt.aov)
+```
+
+
+
+
+## 19) Plot effect sizes
+
+```{r}
+tukey.out <- TukeyHSD(model.alt.aov)
+
+plotTukeysHSD(tukey.out)
+abline(h = 0, col = 2, lty = 2)
+```
+
+
+
+
+
+
+
+
+## Make new data
+
+
+#Make antler circumference data
+```{r}
+circum <- c(94.85394,83.21354,64.94166,96.9141,77.03692,113.2507,90.95746,95.83833,82.66041,97.46359,91.61469,96.4177,100.5873,99.3556,94.23969,57.94891,134.9324,95.01268,128.2977,129.307,70.39667,133.7504,121.0767,105.3898,86.81835,106.1906,136.0613,74.95854,112.6994,110.5714)
+
+
+n <- length(circum)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+
+df.circum <- data.frame(antler.circum = circum,
+                 diet = diet)
+
+rm(list = c("mass", "diet","n"))
+df.circum
+```
+
+
+
+
+
+
+
+
+#Make beam length data
+```{r}
+beam <- c(335.6464,410.2204,425.6838,355.1535,346.7697,399.8559,425.4827,447.6792,397.116,428.6749,406.034,380.342,437.5513,444.8916,437.9827,391.446,425.6301,404.2163,461.0517,568.163,457.6777,459.0168,270.5814,440.9724,412.0543,428.0725,247.2619,386.4118,423.5378,505.5221)
+
+
+n <- length(beam)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+
+df.beam <- data.frame(antler.beam = beam,
+                 diet = diet)
+
+rm(list = c("beam", "diet","n"))
+df.beam
+```
+
+
+
+
+
+### Make antler spread data
+```{r}
+spread <- c(271.4356,291.3746,346.3026,345.6056,234.1441,339.7039,291.5156,275.9856,223.7703,316.9263,375.1109,384.1469,396.6894,272.4158,356.8185,393.6393,412.3185,425.7551,390.7663,381.4302,341.7604,350.6951,306.0166,354.8825,312.0478,459.7191,415.1186,321.8994,281.539,372.0439)
+
+
+n <- length(spread)/3
+diet <- c(rep("Hi.Hi",n),rep("Hi.Lo",n),rep("Lo.Hi",n))
+
+df.spread <- data.frame(antler.spread = spread,
+                 diet = diet)
+
+rm(list = c("spread", "diet","n"))
+df.spread
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## x) Subset data into eachseperate group
+
+```{r}
+df.Hi.Hi <- subset(antlers,
+                   diet == "Hi.Hi")
+df.Hi.Lo <- subset(antlers,
+                   diet == "Hi.Lo")
+df.Lo.Lo <- subset(antlers,
+                   diet == "Lo.Lo")
+```
+
+## x)   Carry out a t-test on each combination
+
+```{r}
+
+t.test.HHvsHL <- t.test(df.Hi.Hi$antler.mass,
+                        df.Hi.Lo$antler.mass)
+
+
+t.test.HHvsHL <- t.test(df.Hi.Hi$antler.mass,
+                        df.Hi.Lo$antler.mass)
+```
+
+
+
+
+
