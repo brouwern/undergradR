@@ -1,0 +1,132 @@
+---
+title: "Lab 6 in-class exercise"
+author: "brouwern@gmail.com"
+date: "October 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 13 Problem 18
+# Immune response of Zebra Finches
+
+The data can be replicated w/o a spreadsheet using this code
+```{r}
+treatment <- c("CAROT","CAROT","CAROT","CAROT","CAROT","CAROT","CAROT","CAROT","CAROT","CAROT",
+                 "NO","NO","NO","NO","NO","NO","NO","NO","NO","NO")
+PHA <- c(1.511,1.311,1.46,1.352,1.491,1.599,1.653,1.39,1.779,1.721,1.454,1.226,1.198,1.139,1.277,1.49,0.912,1.316,1.234,1.332)
+SRBC <- c(2,2,3,4,5,4,8,5,7,4,4,2,3,4,3,0,3,4,2,1)
+
+finches <- data.frame(treatment = treatment,
+                      PHA = PHA,
+                      SRBC = SRBC)
+```
+
+In lab we entered the data into excel and loaded the spreadsheet using **read.csv()**
+```{r}
+# Set the working directoy
+setwd("C:/Users/lisanjie2/Desktop/TEACHING/1_STATS_CalU/1_STAT_CalU_2016_by_NLB/Lab/Lab6_review")
+
+#Load the data
+finches <- read.csv("finchs.csv")
+```
+
+
+# Load finch data from .csv file
+
+
+# Look at finch data
+```{r}
+dim(finches)
+head(finches)
+summary(finches)
+```
+
+
+
+```{r}
+
+```
+
+
+The finch data has TWO columns of numeric response data. One column is for PHA (a measure of cell-mediated immunocompetence) and the 2nd column is for SRBC.  Each row is one bird and the columns hold two separate response variables recorded for that bird.  
+
+To investigate these data, we work with each column of response data seperately.  Its almost as if we have 2 datasets, one of PHA and one of SRBC
+
+These boxplots command have idential structure, just one has "PHA ~" and the other has "SRBC ~ ".  The first tells R "make a boxplot with the PHA  column from the finches dataset", the 2nd says "make a boxplot with the SRBC column".
+
+
+```{r}
+# Boxplot of PHA data
+boxplot(PHA ~ treatment, data = finches,
+        main = "PHA data")
+
+# Boxplot of SRBC data
+boxplot(SRBC ~ treatment, data = finches,
+        main = "SRBC data")
+```
+
+
+
+
+# PLOTTING BOXPLOTS SIDE BY SIDE with the par() command
+
+We can make a plot w/ both variables, SRBC and PHA on it, using the par() command.  The "1,2" means "one row, two columns"
+
+```{r}
+par(mfrow = c(1,2))
+#First boxplot for PHA
+boxplot(PHA ~ treatment,
+        data = finches,
+        main = "PHA data")
+
+#2nd boxplot for SRBC
+boxplot(SRBC ~ treatment, 
+        data = finches,
+        main = "SRBC data")
+```
+
+
+# Means with tapply()
+
+We can calcualte means, sd etc for each column seperately using the tapply() command.  We have to repeat it seperately for each column.
+
+## MEANS
+```{r}
+#t-apply on PHA 
+PHA.mean <- tapply(finches$PHA,
+                    finches$treatment,
+                    FUN = mean)
+
+#t-apply on SRBC 
+SRBC.mean <- tapply(finches$SRBC,
+                    finches$treatment,
+                    FUN = mean)
+```
+
+
+
+## SDs with tapply()
+
+Hust change "FUN = mean" to "FUN = sd" AND re-name the  objects where the data are being saved
+
+
+```{r}
+#t-apply on PHA 
+PHA.sd<- tapply(finches$PHA,
+                   finches$treatment,
+                   FUN = sd)
+
+#t-apply on SRBC 
+SRBC.sd <- tapply(finches$SRBC,
+                    finches$treatment,
+                    FUN = sd)
+```
+
+## Calculate standard error
+
+# Make plots of the mean with the plot2means() function
+
+

@@ -1,0 +1,352 @@
+---
+title: 'Lab 6: Basic Data Analysis Review'
+author: "brouwern@gmail.com"
+date: "October 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Functions used in this Lab
+* list.files()
+* load()
+* ls()
+* boxplot
+* subset
+* hist
+* par(mfrow = c(1,2))
+* tapply
+
+# Outline of Lab
+* load data from an .RData file
+* examine dataframe
+* plot boxplot
+* split data into groups w/subset
+* plot histograms
+* calculate means and sd w/ tapply
+* plot means w/error bars
+
+
+
+
+# 1) Set working directory
+
+I use the RStudio menu to select my working directory.
+
+* Session
+* Set working Directory
+* Choose Directory
+* Choose appropriate directory
+
+```{r}
+setwd("C:/Users/lisanjie2/Desktop/TEACHING/1_STATS_CalU/1_STAT_CalU_2016_by_NLB/Lab/Lab6_review")
+```
+
+
+
+# 2) Check that the data I want is in the directory
+
+I am going to work with a file called light.RData.  I can use **list.files()** to check that the working directory that I have set contains that file.
+
+```{r}
+list.files()
+```
+
+
+
+# 3) Load Data stored as an .RData file
+
+R can save data into its own species format.  Here, I have saved data from a spreadsheet into an **.RData** file.  This data can be loaded into my R session using the **load()** command.  NOTE: the name of the file has to be in parentheses.
+
+```{r}
+load("light.RData")
+```
+
+
+# 4) Check that the data is loaded into the R session
+
+I can confirm that the data is loaded using the ls() command. The file "light.Rdata" loads an R object called "light"
+
+```{r}
+ls()
+```
+
+
+# 5) Examine the data
+
+I can use the standard command head, tail, and summary to check out the data.
+
+```{r}
+head(light)
+
+tail(light)
+
+summary(light)
+```
+
+
+
+
+# 6) The light data
+
+These are data from deer exclusion study at Trillium Trail in Pittsburgh, PA.  C = control plots, E = exclusion plots.  The numeric response variable is the ratio of sunlight at the forest floor to sunlight above the canopy.  Actually, its the log of that ratio, eg log(light below / light above).  The hypothesis is that when deer are excluded, vegetation increases in density and therefore light reachign the forest floor decreases.
+
+<br>
+
+
+# 7) Basic examination of raw data with a histogram
+
+The data is organized into groups so we will want to split it up for our real analysis.  HOwever, it can be informative just to look at the raw data with a histogram.
+
+```{r}
+hist(light$response)
+```
+
+The data are skewed.  Such is life.
+
+
+<br>
+
+# 8) Boxplots
+
+The **boxplot()** function naturally handles grouped data so was can easily visualize these dat.  
+
+```{r}
+boxplot(response ~ treatment, data = light)
+```
+
+Light levels are higher in the "C" treatment (the control where deer have access and can eat the vegetation)
+
+<br>
+
+
+# 9) Split the data with the subset() command
+
+These data are split into two groups.  Some rows of data are from control plots ("C") and some are from exclosures ("E").  The boxplot() function naturally handles data structured like this.  (The t.test function also does, but we won't work with that today).  
+
+Not not all R functions handle grouped data so easily.  We'll use the **subset()** command to split the data into two seperate R objects that we can then work with seperately.
+
+<br>
+
+## The subset command
+
+The subset() command takes three arguements
+
+* the data to be subset (out "light" data object)
+* a command for how to subset the data
+* the columns to return in the final output
+
+The command we will use to subset the data is "treatment == "C" ", which tells the subset command, "look at the treatment column and give me just those rows that have "C" in them".  
+
+We use the arguement "select = c("treatment","response")" to tell subset to give us both the treatment and response columns in our output.  
+
+
+<br>
+
+
+## Annotated subset() command
+The picture below is an annotated version of the subset command, though applied to a differen dataset, not the light data.
+
+```{r, out.width = "800px", echo = F}
+knitr::include_graphics("subset.jpg")
+```
+
+<br>
+
+
+
+
+### Apply subset() to the light data
+### Subset the "C" data (control)
+```{r}
+control.data <- subset(light,
+                       treatment == "C",
+                       select = c("treatment",
+                                  "response"))
+```
+
+We can see if this worked by using the summary() command.  Under the treatment column, summary() indicates that only the variable "C" appears
+```{r}
+summary(control.data)
+```
+
+<br>
+
+
+### Subset the "E" data (exclosure)
+```{r}
+exclosure.data <- subset(light,
+                       treatment == "E",
+                       select = c("treatment",
+                                  "response"))
+```
+
+
+<br>
+
+
+# 10) Plot histograms by group
+
+Now that the data are split up we can make a histogram to look at the distributions of the data.  
+
+With the hist() command we have to tell R exactly which column we want it to use.  We can't just tell R hist(control.data), because there are two columns in the control.data dataframe.  We have to use the dollar sign operator $ to tell hist() to select just the "response"" column, eg hist(control.data$response)
+
+```{r}
+hist(control.data$response)
+```
+
+To plot the two datasets side by side we need to use the par() command to change the plotting window settings.  Note the x-axes are set differently because the ranges of the data are somewhat different.
+```{r}
+par(mfrow = c(1,2))
+hist(control.data$response)
+hist(exclosure.data$response)
+```
+
+<br>
+
+
+
+# 11) Calculating the means of the two groups of data
+
+## 11a) Working with seperate subsets of data
+
+We can get the means, standard deviations, etc of each set of data easily using the mean(), sd() command.  Note that again we must use the dollar sign $ to define the column we want to use.
+
+
+Means
+```{r}
+mean(control.data$response)
+mean(exclosure.data$response)
+```
+
+
+Standard deviations
+```{r}
+sd(control.data$response)
+sd(exclosure.data$response)
+```
+
+
+We can get the sample size using the length() command
+```{r}
+length(control.data$response)
+length(exclosure.data$response)
+```
+
+<br>
+
+
+
+
+## 11b) Using the tapply() command to subset data "on the fly"
+
+Learning to split up data using the **subset()** is an important skill, but it isn't always necessary.  We can get the means of each group of data more quickly by using a special function caleld tapply() which will split our data up "on the fly" and apply the mean() or other functions to subsets of the data for us.
+
+The tapply() functions takes 3 main argument.  
+i) The numeric variable that you want to get information from (ie, mean values by group).  
+ii) The categorical variable that defines the groups in the data.  
+iii)The mathematical function to apply to the data (mean, sd, min, etc)
+
+```{r, out.width = "800px", echo = F}
+knitr::include_graphics("tapply.jpg")
+```
+
+<br><br>
+
+
+## Using the tapply() function to calculate the mean
+```{r}
+my.means <- tapply(light$response,  
+                   light$treatment, 
+                   FUN = mean,      
+                   na.rm = T)
+```
+
+
+The output
+```{r}
+my.means
+```
+
+<br>
+
+
+## Using the tapply() function to set up a plot of means with error bars
+
+If we want to make a standard plot with means and error bars we need these things
+
+* means for each group
+* standard deviations for each group
+* sample size
+* standard errors
+* a function to make the plot with
+
+We have the means for each group.  We can use the tapply function to calculate the standard deviations using the sd() function.
+```{r}
+my.sd <- tapply(light$response,  
+                   light$treatment, 
+                   FUN = sd,      
+                   na.rm = T)
+```
+
+<br>
+
+We can get the samples sizes (n) using summary().  Both treatment have 36 samples.
+```{r}
+summary(light)
+```
+
+Let's store that information in an R object
+```{r}
+my.n <- c(36,36)
+```
+
+
+We can calcualte the standard error as sd/sqrt(N)
+```{r}
+my.se <- my.sd/sqrt(my.n)
+```
+
+<br>
+
+
+
+# Review: loading .RData files
+
+To plot the means we'll use my function plot2means.  We could load this code by hand by cutting and pasting code from http://rpubs.com/brouwern/plot2means , but instead I have saved the function as an .RData file that we can load.  .RData files can hold any R object, whether its a dataframe like the light.RData we loaded earlier or a function.
+
+
+The load() command adds the function plot2means() to our R sessions.
+```{r}
+load("plot2means.RData")
+```
+<br>
+
+
+# Making plots w/ plot2means()
+
+The plot2means arguement takes on three major arguements.
+
+* a set of means
+* a set of standard erros (se)
+* a set of category names
+
+Here's an annotated version of the function
+
+```{r, out.width = "800px", echo = F}
+knitr::include_graphics("plot2means.jpg")
+```
+<br><br>
+
+```{r}
+plot2means(means = my.means,
+           se = my.se,
+           categories = c("C","E"))
+```
+
+
+
+
