@@ -1,0 +1,69 @@
+---
+title: "Lab 4"
+author: "brouwern@gmail.com"
+date: "September 21, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Task 1: Data Entry
+Enter the lengths of each your  genes into a **vector** using the **c( )** command.
+
+```{r}
+my.genes <- c(1042,1472,4339,1865,4706,2439,3369,2988,3286, 3773)
+```
+
+# Task 2: Summary Statistics
+
+### 2a) Confirm the sample size with the **length()** command
+```{r}
+length(my.genes)
+```
+
+
+### 2b) Calculate the median, the min, and the max using the appropriate R commands
+```{r}
+median(my.genes)
+min(my.genes)
+max(my.genes)
+```
+
+
+
+### 2c) Calculate the mean "long hand" using the **sum()** and **length()** command.  Enter this into your worksheet.  Check your answer using the appropriate R command.
+```{r}
+sum(my.genes)/length(my.genes)
+```
+
+### 2d) Calculate the variance using the **var()** command
+```{r}
+var(my.genes)
+```
+
+### 2e) Calculate the standard deviation (sd) "long hand" using the square root of the variance.
+
+\[\sigma = \sqrt{\frac{\sum\limits_{i=1}^{n} \left(x_{i} - \bar{x}\right)^{2}} {n-1}}\]
+
+```{r}
+sqrt(var(my.genes))
+```
+
+
+
+### 2f) Calculate the standard error (se) "long hand" using the square root of the variance and the length of the data.  The required commands are 
+
+* sqrt()
+* var() 
+* length()
+
+```{r}
+sqrt(var(my.genes))/sqrt(length(my.genes))
+```
+
+
+
+
