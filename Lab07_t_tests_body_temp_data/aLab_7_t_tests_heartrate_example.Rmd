@@ -1,0 +1,544 @@
+---
+title: "t-tests"
+author: "brouwern@gmail.com"
+date: "October 12, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/lisanjie2/Desktop/TEACHING/1_STATS_CalU/1_STAT_CalU_2016_by_NLB/Lab/Lab7_t_tests")
+```
+
+# Outline
+
+* Load data
+* Clean data
+* Visualize data
+* Question 1: What is the average human body temp?
+* Question 2: Is the average human body statistically different from 98.6?
+* Question 3: How do Male and Female Body Temps compare?
+* Question 4: What is the relationship between resting heart rate and temperature
+* Question 5: How is a paired t-test similar to a 1-sample t-test?
+
+# Commands and arguments used
+
+* read.csv()
+* hist()
+* abline()
+* sd()
+* c()
+* boxplot()
+* plot()
+* col = 
+* lwd = 
+* lty = 
+* xlab = 
+
+
+## Data source:
+
+Shoemaker, A.  1996.  What's Normal? -- Temperature, Gender, and Heart Rate.  Journal of Statistics Education v.4, n.2
+ww2.amstat.org/publications/jse/v4n2/datasets.shoemaker.html
+
+## Original inspiration
+
+Journal of the American Medical Association entitled "A Critical Appraisal of 98.6 Degrees F, the Upper Limit of the Normal Body Temperature, and Other Legacies of Carl Reinhold August Wunderlich" (Mackowiak, Wasserman, and Levine 1992).
+
+These data are covered in example 11.3 on page 310 in Whitlock and Shulter, 2nd ed.
+
+## Load Body Temp Data
+
+Load the data from a .csv file
+```{r}
+dat <- read.csv("bodytemp.csv")
+```
+
+**NOTE:** if you have trouble loading the data, go to the very end of this page; there is code to replicate the data directly in R w/o loading a .csv file
+
+<br>
+<br>
+
+## Look at the Body Temp data
+```{r}
+#size of dataframe
+dim(dat)
+
+#first few rows
+head(dat)
+
+#last few rows
+tail(dat)
+```
+
+
+## Look at overall summary
+```{r}
+summary(dat)
+```
+
+
+## Data cleaning:
+## Convert "1" to male & "2" to female
+The original file has male = 1 and female = 2.  LEt's change these to letters using the **ifelse()** command.  What we'll do is have R look at the gender column in the dat dataframe and if the value equals 1, change it to "male", else change it to "female". So, if its a 1, chagne it to male, if it its not a 1, it must be a 2 so change it to female. We'll put these changes into a new data object.
+```{r}
+#New object
+gender.MF <- ifelse(dat$gender == 1,"male","female")
+```
+Note that we use **==** to set up the logical argument.  
+
+<br><br>
+
+## Add new column to existing dataframe
+
+```{r}
+#add new object to existing dataframe
+dat <- data.frame(dat, gender.MF)
+```
+
+Look aat the new dataframe
+```{r}
+summary(dat)
+```
+
+Note that R automatically makes the gender.MF column into categorical data.
+
+
+
+<br><br><br>
+
+
+# Question 1: What is the average human body temp?
+
+Conventional wisdom is that "normal" body temp is **98.6** degrees F when taken with an oral theremometer.  Is this true for this sample?
+```{r}
+summary(dat)
+```
+
+The mean and the median are both about 0.3 degrees below **98.6.**
+
+Let's look at the distribution of the data to get a sense for what's going one.
+
+<br><br>
+
+## Graph 1: histogram
+
+* Let's make a histogram of all of the human body temps.  
+* We can add a line for the **mean** (y.hat) using the command **abline()**.  
+* We give **abline** the arugment **v=** to tell it to make a vertical line. 
+* We also pass abline the arguement **col="green"** to change the color to green
+* the name of the color must be in quotes. col = green will not work.
+* Finally, we pass abline the arguement "lwd=2" to increase the size of the line.  
+* **lwd** means "line width"
+
+```{r}
+
+#1st, Calculate the mean and store into an R object
+overall.mean <- mean(dat$temp)
+
+#make the histogram of the $temp column
+hist(dat$temp)
+
+#add a line for the mean
+abline(v = overall.mean, col = 3, lwd = 2)
+```
+
+
+
+## Graph 2: histogram with more details
+
+We'll use the following command to add further info to the histogram
+
+* mean()
+* median()
+* sd()
+* abline
+* legend()
+* col = 
+* lty = 
+* lwd = 
+
+First, caculate sum summary stats and save them into R objects.
+```{r}
+#Calculate the mean
+overall.mean <- mean(dat$temp)
+
+#Calculate the MEDIAN
+overall.median <- median(dat$temp)
+
+
+#Calculate the standard deviation
+overall.sd <- sd(dat$temp)
+```
+
+
+Now, plot the data and add addition information
+```{r}
+
+#make the histogram of the $temp column
+hist(dat$temp,
+     xlab = "Oral temperature (F)",
+     main = "")
+
+#add a green line for the mean
+abline(v = overall.mean, 
+       col = "green", 
+       lwd = 2)
+
+#add a line for the median
+#  make the color BLUE
+#  make the line DASHED
+abline(v = overall.median, 
+       col = "blue", 
+       lwd = 2, 
+       lty = 2)
+
+
+
+# Add lines for +/- 1 SD
+#  make the color RED
+
+#plus 1 SD.  Note that I add the SD to the mean
+abline(v = overall.mean+overall.sd, 
+       col = "red", 
+       lwd = 2, lty = 2)
+
+#minus 1 SD Note that I subtract the SD from the mean
+abline(v = overall.mean-overall.sd, 
+       col = 2, 
+       lwd = 2, 
+       lty = 2)
+
+#Add a line for where 98.6 is
+abline(v = 98.6, 
+       col = "lightblue", 
+       lwd = 2, 
+       lty = 4)
+
+
+#Add a legend
+legend.text <- c("mean",
+                 "median",
+                 "+/- 1 SD",
+                 "98.6 degrees F")
+
+colors.used <- c("green","blue","red","lightblue")
+legend("topright",
+       legend = legend.text,  #what each line is
+       col = colors.used,     #what each color is
+       lty = c(1,2,2,4),      #the type of dashs used
+       lwd = 2)               #the width of the line
+
+```
+
+Note that 98.6 is **higher** than the mean and the median.
+
+
+<br><br><br><br>
+
+
+# Question 2: 
+# Is the average human body statistically different from 98.6?
+
+The mean and median of our sample are both less than the conventional value of 98.6.  But could this just be due to sampling variation?  We can test the hypothesis that this difference is not due to chance using a one-sample t-test.
+
+# One-sample t-test
+
+* We will test the hypothesis that the mean of this sample of data is different than the conventional wisdom that the "normal" human temperature is **98.6 degrees F.**  
+* The **null hypothesis (Ho)** is that the mean of this sample equals 98.6
+* Recall that **"mu"** is the population mean (aka the population parameter).  
+
+First, we make an object that contains our value for mu, 98.6.  Then we carry out a one-sample t-test.
+```{r}
+normal.temp <- 98.6
+t.test(dat$temp, 
+       mu = normal.temp)
+```
+
+<br><br>
+
+
+# Plot the output of the 1-sample t-test
+This code is **very complex**; just focus on the plot that it makes.
+```{r}
+#save t-test to R object
+one.sample.t.test.output <- t.test(dat$temp, 
+       mu = normal.temp)
+
+#extract important stuff from t-test
+mean.out <- one.sample.t.test.output$estimate
+min.max <- one.sample.t.test.output$conf.int
+ci <- one.sample.t.test.output$conf.int
+min.max[1] <- min.max[1] -min.max[1]*.001
+min.max[2] <- 98.6+0.01
+
+#plot the mean value 
+plot(mean.out, ylim = min.max, pch = 16, cex =2,
+     xlab = "",
+     ylab = "Mean body temp",
+     xaxt = "n")
+
+#add errorbars bassed on the confidence intervals
+segments(x0 = 1, x1 = 1,
+         y0 = mean.out, y1 = ci[2], lwd = 2)
+segments(x0 = 1, x1 = 1,
+         y0 = mean.out, y1 = ci[1], lwd = 2)
+
+#show where mu is
+abline(h = 98.6, col = "red", lty = 2)
+
+#add annotation
+text(x = 0.65, y = 98.55, "mu = 98.6")
+
+text(x = 0.7095, y = 98.1, "Error bars = 95%CI")
+
+p.out <- paste("p=", round(one.sample.t.test.output$p.value,7))
+text(x = 1.35, y = 98.1, p.out)
+
+```
+
+<br>
+
+The p value is MUCH lower than the traditional cutoff of **0.05**.  
+
+This 1-sample t-test indicates that the mean temperature of this sample is less than 98.6 and the difference is very unlikely to be due to change.  
+
+The most plausible range of values for the true, biologically determine population mean (mu) is between
+**98.12200** and  **98.37646**, as defined by the 95% confidence interval.  98.6 is therefore a very inplausible value!
+
+Note, however, than many people did have a higher temp than 98.6; there is significant variation in the body temp of healthy individual.
+
+<br><br><br>
+
+# Question 3: 
+# How do Male and Female Body Temps compare?
+
+
+## Graph 3: How do males and female compare?
+```{r}
+boxplot(temp ~ gender.MF, data = dat)
+```
+
+Males appear to have a lower median temp than female.  Is this biologically based or could this difference just be due to chance?
+
+* We can assess this using a 2-sample t-test.  
+* Before, we had all the data pooled together, hence we did a "1-sample" test. 
+* Now we are splitting the data into two groups and therefore its a **two sample** test
+* Two sample tests proably the most common type of t-test
+* Therefore, if someones says that they did a t-test, the probalby mean a 2-sample test
+
+# 2-sample t-test
+
+* For a 2-sample test we don't specify "mu"
+* We specify the test using the equation notation just like the boxplot, using the tilda symbol (~)
+
+```{r}
+t.test(temp ~ gender.MF, 
+       data = dat)
+```
+
+* What does this test indicate about male and female body temp?
+* Female body temp is higher - is it closer to 98.6?
+
+<br><br><br><br>
+
+# Question 4: 
+# What is the relationship between resting heart rate and temperature
+
+## Making a scatterplot using plot()
+```{r}
+plot(temp ~ heartrate,data = dat)
+```
+
+There might be some relationship here.  We could explore this further if we wanted with linear regression.
+
+
+## Do male and females have different relationships between resting hear rate and body temp?
+
+Subset the data by males and females
+```{r}
+
+males <- subset(dat,  
+                gender.MF == "male")
+
+females <- subset(dat,  
+                gender.MF == "female")
+
+```
+
+<br><br><br><br>
+
+Plot males and females seperately
+```{r}
+par(mfrow = c(1,1))
+#set xlims
+xlims <- c(min(dat$heartrate),max(dat$heartrate))
+
+plot(temp ~ heartrate, 
+     data = males,
+     xlim = xlims)
+points(temp ~ heartrate, 
+       data = females, 
+       col = "green")
+```
+
+The patterns appear to be similar.  We could explore this further with multiple linear regression.
+
+
+<br><br><br><br>
+
+# Question 5: 
+# How is a paired t-test similar to a 1-sample t-test?
+
+* A paired t-test is also a common type of t-test
+* A common type of pairing is before and after a treatment occurred
+* A paired treatment can be set up a couple different ways in R
+* Mathematically, a paired t-test is similar to a 1-sample t-test.
+* With a paired t-test we are not interested in whether the overall means of each group or time point (ie before, after) are difference
+* We are interested in whether the difference between each pair of measurements is consistently different from zero
+* **A paired t-test is therefore equivalent to a 1-sample t-test where the population parameter mu=0**
+
+## Simulate data
+* We will look at paired t-tests with some fake data.  
+* I've simulated some data representing a person's body temp before the experimental treatment occured (before)
+* I've also simualted body temps after a stress treatment occurs (stressed)
+* The hypothesis (Ha) is that being stressed changes your body temp.
+* The null hypothesis (Ho) is that there is no consistent impact of stress on body temp.
+
+<br>
+
+### This code makes the fake data; ignore it
+```{r}
+      lm.out <- lm(temp ~ heartrate, data = dat)
+      
+      temp.orig <- simulate(lm.out, seed = 100)
+      temp.stress <- simulate(lm.out, seed = 101) + 0.5+ rnorm(length(dat), mean = 0, sd = sd(dat$temp)/2)
+      
+      new.dat <- data.frame(before = temp.orig$sim_1,stressed = temp.stress$sim_1)
+
+
+```
+
+## Plot the fake data
+
+```{r}
+#set x axis limits
+xlims. <- c(min(new.dat), max(new.dat))
+
+#set up to plot 2 histograms next to each other
+par(mfrow = c(1,2))
+
+#plot the 1st hist
+hist(new.dat$before,
+     main = "", 
+     xlim  =xlims.)
+
+#add line for the mean
+abline(v = mean(new.dat$before), 
+       col = "green",
+       lwd = 2)
+
+#plot 2nd hist
+hist(new.dat$stressed, 
+     main = "", 
+     xlim = xlims.)
+
+#add line
+abline(v = mean(new.dat$stressed),
+       col = "blue", 
+       lwd = 2)
+```
+
+
+(I intentionaly made the means to be different, so the differene is not surprising!)
+
+
+## Calculate the difference between "before"
+
+* We can do some simple math to calculate teh difference between before and after
+* we use the dollar sign ($) to select the columns we want
+
+```{r}
+difference1 <- new.dat$before -  new.dat$stressed
+```
+
+<br>
+We can add this to our dataframe like this
+
+```{r}
+new.dat$difference1 <- difference1
+```
+
+
+Note that we could do this all in 1 step if we wanted.  Lets flip the order of the values.
+
+```{r}
+new.dat$difference2<- new.dat$stressed - new.dat$before 
+```
+
+
+## Visualize data
+
+Look at distribution of differences
+```{r}
+hist(new.dat$difference1)
+```
+
+<br><br>
+
+
+## 1-sample t-test on difference
+
+* We'll complete the paired t-test process by conducting a 1-sample test, setting mu = 0.
+* We are therefore testing the hypothesis that the average **difference** between before and stressed is greater than zero
+```{r}
+t.test(new.dat$difference1 , 
+       mu = 0)
+       
+```
+
+
+
+## What's the difference between these two results?
+
+t.test when the difference is calcualted as "new.dat$before -  new.dat$stressed""
+```{r}
+t.test(new.dat$difference1 , 
+       mu = 0)
+```
+
+<br>
+
+t.test when the difference is calcualted as new.dat$stressed - new.dat$before
+```{r}
+t.test(new.dat$difference2 , 
+       mu = 0)
+```
+
+Can you spot the differences?  There are 2
+
+
+
+<br><br><br><br>
+
+
+
+
+
+
+# Appendix
+## Code to rebuild the data from scratch
+
+This code allows you to re-build the dataframe without loading any data.
+
+```{r}
+temp <- c(96.3,96.7,96.9,97,97.1,97.1,97.1,97.2,97.3,97.4,97.4,97.4,97.4,97.5,97.5,97.6,97.6,97.6,97.7,97.8,97.8,97.8,97.8,97.9,97.9,98,98,98,98,98,98,98.1,98.1,98.2,98.2,98.2,98.2,98.3,98.3,98.4,98.4,98.4,98.4,98.5,98.5,98.6,98.6,98.6,98.6,98.6,98.6,98.7,98.7,98.8,98.8,98.8,98.9,99,99,99,99.1,99.2,99.3,99.4,99.5,96.4,96.7,96.8,97.2,97.2,97.4,97.6,97.7,97.7,97.8,97.8,97.8,97.9,97.9,97.9,98,98,98,98,98,98.1,98.2,98.2,98.2,98.2,98.2,98.2,98.3,98.3,98.3,98.4,98.4,98.4,98.4,98.4,98.5,98.6,98.6,98.6,98.6,98.7,98.7,98.7,98.7,98.7,98.7,98.8,98.8,98.8,98.8,98.8,98.8,98.8,98.9,99,99,99.1,99.1,99.2,99.2,99.3,99.4,99.9,100,100.8)
+gender <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
+heartrate <- c(70,71,74,80,73,75,82,64,69,70,68,72,78,70,75,74,69,73,77,58,73,65,74,76,72,78,71,74,67,64,78,73,67,66,64,71,72,86,72,68,70,82,84,68,71,77,78,83,66,70,82,73,78,78,81,78,80,75,79,81,71,83,63,70,75,69,62,75,66,68,57,61,84,61,77,62,71,68,69,79,76,87,78,73,89,81,73,64,65,73,69,57,79,78,80,79,81,73,74,84,83,82,85,86,77,72,79,59,64,65,82,64,70,83,89,69,73,84,76,79,81,80,74,77,66,68,77,79,78,77)
+
+dat <- data.frame(temp = temp,
+                  gender = gender,
+                  heartrate = heartrate)
+
+```
+
