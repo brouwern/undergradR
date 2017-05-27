@@ -1,0 +1,370 @@
+---
+title: "Intro to t-test"
+author: "brouwern@gmail.com"
+date: "September 29, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preliminaries
+Set working directory
+```{r}
+setwd("C:/Users/lisanjie2/Desktop/TEACHING/1_STATS_CalU/1_STAT_CalU_2016_by_NLB/Lab/Lab5_intro_to_t_test_and_hypothesis_testing")
+```
+
+
+# Load Brook Trout Data
+These data are from Example 12.4 "So long; thanks to all the fish" in Whitlock and Shulter 2nd ed.
+```{r}
+salmon <- read.csv("Lab5_data_brook_trout.csv")
+```
+
+
+# Examine the brook trout data
+Each line of data is a stream that either has introduced brook trout present or not present.
+```{r}
+# size of dataframe
+dim(salmon)
+
+#top of data
+head(salmon)
+
+#bottom of data
+tail(salmon)
+
+#summary of data
+summary(salmon)
+```
+
+
+# Data setup
+The **response variable** in this study is the **percent (%)** of chinook salmon that survived over the course of the study.  We therefore need to calcualte this value using R's basic math function for divison.
+
+
+## Calcualte survival rates
+
+### 1st, calcualte the fraction of fish that surved in each stream
+```{r}
+percent.surv <-salmon$salmon.surv/salmon$salmon.released
+```
+
+
+### 2nd, check to make sure that the data make sense.  
+The data are a percentage, so each datum should be between 0 and 1.  We can look at the data using **summary()**
+```{r}
+summary(percent.surv)
+```
+
+We could also use range(), min(), and max(). to get this info.  We could also make a histogram using hist().
+
+
+### 3rd, add the percentages to the original dataframe
+
+We'll call the new column "percent.surv" also.
+```{r}
+salmon$percent.surv <- percent.surv
+```
+Note: this isn't actually a percent, but a fraction.  To get a percent we'd multiple it by 100.
+
+
+
+### 4th, check the calculated data
+```{r}
+#The whole datafame
+salmon
+
+#summary()
+summary(salmon)
+```
+
+
+
+# Data exploration
+
+We should explore the data using boxplots and histograms.  The **response variable** is "percent.surv" and the **predictor variable* is whether introduced brook trout are present or absent.
+
+
+## Boxplot
+```{r}
+boxplot(percent.surv~brook.trout.PRES.ABS,
+        data = salmon)
+```
+
+Median survival is a bit lower but there is not much difference.
+
+
+## Histograms
+Boxplots are adequate for looking at these data, but let's practie make a 2-panel histrogram for practic.  This requires using the **subset()** command to split the data up by group
+
+
+
+
+### Subset the data 
+Subset (split) from just the streams where brookies are present.
+```{r}
+present <- subset(salmon,
+                  select = c("brook.trout.PRES.ABS",
+                             "percent.surv"),         
+                  brook.trout.PRES.ABS == "present")
+
+```
+
+
+Subset from just the streams where brookies are absetn
+```{r}
+absent <- subset(salmon,
+                  select = c("brook.trout.PRES.ABS",
+                             "percent.surv"),         
+                  brook.trout.PRES.ABS == "absent")
+
+```
+
+
+
+### Make side by side histograms
+
+First, we need to set up the plot window using the **par()** command.  Then we can make the histograms.  We specify the subset dataframe to use (present or absent) and the column within the dataframe **$percent.surv**
+```{r}
+# the par() command
+par(mfrow = c(1,2))
+
+#left histogram
+hist(present$percent.surv)
+
+#right histogram
+hist(absent$percent.surv)
+```
+
+
+
+
+### Make the histograms nicer to look at
+
+* R always makes big titles by default.  We can fix the by including the arguement **main = "..."**, where **main** specifies the main title of the plot.  
+* R also will make the x axis different on each plot.  We can fix that using the **xlim** arguement.  THe data are percentages so its natural use use 0 to 1 as the limits.  However, since there are no values above 0.5 we'll use that as the upper limit.
+* We can also label the x axis using **xlab = "..."***
+* See this page for more info on setting plot limits: https://rpubs.com/brouwern/211902
+
+```{r}
+par(mfrow = c(1,2))
+#left histogram
+hist(present$percent.surv,
+     main = "Brk Trout Present", 
+     xlim = c(0,0.5),
+     xlab = "Percent surv")
+
+#right histogram
+hist(absent$percent.surv,
+     main = "Brk Trout Absent" ,
+     xlim = c(0,0.5),
+     xlab = "Percent surv")
+
+```
+
+
+# Calculate means & stand dev using tapply()
+
+We'll use the tapply command.  See https://rpubs.com/brouwern/groupeddata for more deetails
+
+Calculate means and standard deviations for the brook trout present and brook trout absent rows of data.
+
+NOTE: we'll using the original **salmon** dataframe, NOT the subsets
+
+
+```{r}
+#use tapply() on salmon dataframe
+my.means <- tapply(salmon$percent.surv,
+                       salmon$brook.trout.PRES.ABS,
+                       FUN = mean,
+                       na.rm = T)
+
+#the result: both means calcualted
+my.means
+
+#use tapply() to calcualte the sd
+my.sd <- tapply(salmon$percent.surv,
+                       salmon$brook.trout.PRES.ABS,
+                       FUN = sd,
+                       na.rm = T)
+
+#the result
+my.sd
+
+```
+
+
+
+## Calculate standard error from the sd
+
+```{r}
+#sample size
+n<- 6
+
+#calculate se
+my.se <- sqrt(my.sd)/n
+
+
+```
+
+
+
+# Plotting means
+
+Boxplot and histograms are good for exploring the oveall distribution of the data.  We typically want to plot the mans with error bars when we are doing hypothesis testing.
+
+
+
+## Load the plot2means() function
+
+From https://rpubs.com/brouwern/plot2means
+```{r}
+#### The function STARTS here ####
+plot2means <- function(means,
+                           se,
+                           groups = 2,
+                           categories = c("Group 1","Group 2"),
+                           x.axis.label = "x axis",
+                           y.axis.label = "y axis",
+                       axis.adjust = 0){
+  
+  # reset plot window
+  par(mfrow = c(1,1), 
+      mar = c(3.5,3,2,1))
+                             
+  # calculate values for plotting limits                 
+  y.max <- max(means+2*se) +                    
+    max(means+2*se)*axis.adjust
+  y.min <- min(means-2*se) - 
+    max(means+2*se)*axis.adjust
+  
+  if(groups == 2){ x.values <- c(0.25, 0.5)}
+  
+  
+  
+  #Plot means
+  plot(means ~ x.values,
+       xlim = c(0.2,0.55),
+       ylim = c(y.min,y.max),
+       xaxt = "n",
+       xlab = "",
+       ylab = "",
+       cex = 1.25,
+       pch = 16)
+  
+  axis(side = 1, 
+       at = x.values,
+       labels = categories,
+      )
+  
+  #Plot upper error bar 
+  lwd. <- 2
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means+2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.)
+  
+  #Plot lower error bar
+  arrows(y0 = means,
+         x0 = x.values,
+         y1 = means-2*se,
+         x1 = x.values,
+         length = 0,
+         lwd = lwd.) 
+  
+  mtext(text = x.axis.label,side = 1,line = 1.75)
+  mtext(text = y.axis.label,side = 2,line = 1.95)
+  mtext(text = "Error bars = 95% CI",side = 3,line = 0,adj = 0)
+  
+}
+
+#### The function ENDS here ####
+```
+
+
+
+
+## Plot the means & the se
+```{r}
+plot2means(means = my.means,
+           se = my.se,
+           categories =  c("absent",
+                           "present"),
+           x.axis.label = "Brook trout status",
+           y.axis.label = "Salmon survival"
+            
+          )
+```
+
+
+
+# Conducting a 2-sample t-test
+
+We'll use the main salmon dataframe
+
+```{r}
+t.test(percent.surv ~ brook.trout.PRES.ABS, 
+       data = salmon)
+```
+
+
+```{r, echo = F}
+t.out <- t.test(percent.surv ~ brook.trout.PRES.ABS, 
+       data = salmon)
+mean1 <- round(t.out$estimate[[1]],3)
+mean2 <- round(t.out$estimate[[2]],3)
+```
+
+
+Note that the output reports an interesting thing, the 95% confidence interval.  Specifically, this is the 95% for the difference between the two mean values.  The means are `r mean1` and  `r mean2`, and their difference is `r mean1 - mean2`.  
+
+The ***null hypothesis (Ho)** is that this value is essentially equal to zero.  `r mean1 - mean2` is close to zero, and we use the t-test and confidence intervals to determine if a difference of `r mean1 - mean2` could just result from random sampling error.
+
+If we plot this difference and the confidence interval we get the graph below.  The red line indicates where zero is on the y axis.
+
+```{r,echo = F, warning=F, include=FALSE }
+library(Hmisc)
+par(mfrow = c(1,1), mar = c(4,4,4,4))
+errbar(x = 1, y = mean1-mean2,
+       yplus = t.out$conf.int[[2]],
+       yminus = t.out$conf.int[[1]],
+       xaxt = "n",ylab = "Diff. btwn means",xla = "")
+
+abline(h=0, col = 2, lwd = 2,lty =2)
+```
+
+
+
+### Compare original mean values to "differene between the means"
+
+```{r}
+par(mfrow = c(1,2), mar = c(4,4,4,4))
+errbar(x = 1:2, 
+       y = my.means,
+       yplus = my.means + 2*my.se,
+       yminus = my.means -2*my.se,
+       xaxt = "n",ylab = "Survival",
+       xlim = c(0.75,2.25),
+       main = "Original means")
+mtext("NOTE: y axis is from 0.15 to 0.35",side = 1, line = 2)
+axis(side = 1,at = c(1,2),labels = c("absent","present"))
+mtext("Plot of means of each group")
+
+errbar(x = 1, y = mean1-mean2,
+       yplus = t.out$conf.int[[2]],
+       yminus = t.out$conf.int[[1]],
+       xaxt = "n",ylab = "Diff. btwn survival rates",
+       main = "Difference between means",
+       xlab = "")
+
+abline(h=0, col = 2, lwd = 2,lty =2)
+mtext("NOTE: y axis is from -0.05 to 0.15",side = 1, line = 2)
+mtext("Plot difference between means")
+
+
+```
+
