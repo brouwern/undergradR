@@ -1,0 +1,79 @@
+---
+title: "Sample paired t-test"
+author: "brouwern@gmail.com"
+date: "October 27, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Paired T-test example
+
+
+## Data
+This data contains 6 paired observations.  There are six pairs of plots, each with an exclosure and a control treatment.  The exclosures are fenced to keep out deer, the controls are open and allow deer access.
+
+This code builds up the dataframe we will use
+```{r}
+#LONG data - numeric data all in 1 column
+plot <- c(1,1,3,3,4,4,5,5,6,6,7,7)
+treatment <- rep(c("control","exclosure"),6)
+species.richness <- c(3,3,6,5,2,3,3,1,3,2,5,2)
+df.1column <- data.frame(plot = plot,
+                 treatment = treatment,
+                 species.richness = species.richness)
+
+#reshape to wide data
+library(reshape2)
+
+df.2column <- dcast(data = df.1column,
+                formula = plot ~ treatment,
+                value.var = "species.richness",
+                fun.aggregate = sum)
+```
+
+
+## Explore data
+Explore the data using histograms
+
+### Plot all data
+Use the 1 column dataframe
+```{r}
+par(mfrow = c(1,1))
+hist(df.1column$species.richness)
+```
+ 
+
+### Plot by group
+Use the 2-column datafarme
+```{r}
+par(mfrow = c(1,2))
+hist(df.2column$control, main = "control", xlab = "Species richness")
+hist(df.2column$exclosure, main = "exclosure", xlab = "Species richness")
+```
+
+## Calculate the difference between treatments
+
+Substract control from the exclosure
+```{r}
+df.2column$difference1 <- df.2column$exclosure - df.2column$control
+```
+
+
+Plot the differences
+```{r}
+par(mfrow = c(1,1))
+hist(df.2column$difference1, main = "Difference: Excl - Control", xlab = "Difference")
+```
+
+
+# T test 1 on differences
+```{r}
+t.test(df.2column$difference1, mu = 0)
+```
+
+
+
+
